@@ -19,6 +19,75 @@ class AuthService extends ChangeNotifier {
 
   final ApiService _apiService = ApiService();
 
+  // USUÁRIOS DE TESTE - CORRIGIDO PARA USAR TIPOS CORRETOS
+  final Map<String, Map<String, dynamic>> _testUsers = {
+    'admin@test.com': {
+      'password': '123456',
+      'userData': {
+        'id': 1, // int em vez de String
+        'name': 'Administrador',
+        'email': 'admin@test.com',
+        'userType': Constants.adminType,
+        'phone': '(11) 99999-9999',
+        'location': 'São Paulo, SP',
+        'securityQuestion': 'Qual o nome do seu primeiro animal de estimação?',
+        'securityAnswer': 'Rex',
+        'isActive': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      }
+    },
+    'tutor@test.com': {
+      'password': '123456',
+      'userData': {
+        'id': 2,
+        'name': 'João Silva',
+        'email': 'tutor@test.com',
+        'userType': Constants.tutorType,
+        'phone': '(11) 88888-8888',
+        'location': 'Rio de Janeiro, RJ',
+        'securityQuestion': 'Qual o nome da sua mãe?',
+        'securityAnswer': 'Maria',
+        'isActive': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      }
+    },
+    'lojista@test.com': {
+      'password': '123456',
+      'userData': {
+        'id': 3,
+        'name': 'Pet Shop Central',
+        'email': 'lojista@test.com',
+        'userType': Constants.lojistaType,
+        'phone': '(11) 77777-7777',
+        'location': 'Belo Horizonte, MG',
+        'cnpj': '12.345.678/0001-90',
+        'responsibleName': 'Carlos Silva',
+        'storeType': Constants.physicalStore,
+        'operatingHours': '08:00 às 18:00',
+        'securityQuestion': 'Qual o nome da cidade onde você nasceu?',
+        'securityAnswer': 'Belo Horizonte',
+        'isActive': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      }
+    },
+    'vet@test.com': {
+      'password': '123456',
+      'userData': {
+        'id': 4,
+        'name': 'Dr. Maria Santos',
+        'email': 'vet@test.com',
+        'userType': Constants.veterinarioType,
+        'phone': '(11) 66666-6666',
+        'location': 'Salvador, BA',
+        'crmv': 'BA 1234',
+        'securityQuestion': 'Qual o nome da sua escola primária?',
+        'securityAnswer': 'Escola Municipal',
+        'isActive': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      }
+    },
+  };
+
   AuthService() {
     _loadUserFromStorage();
   }
@@ -48,21 +117,45 @@ class AuthService extends ChangeNotifier {
     try {
       _setLoading(true);
 
-      final response = await _apiService.post(
-        Constants.loginEndpoint,
-        {
-          'email': email,
-          'password': password,
-        },
-      );
+      // VERIFICAR USUÁRIOS DE TESTE PRIMEIRO
+      final testUser = _testUsers[email.toLowerCase()];
+      if (testUser != null && testUser['password'] == password) {
+        // Login com usuário de teste
+        _token = 'test_token_${DateTime.now().millisecondsSinceEpoch}';
+        
+        try {
+          _currentUser = User.fromJson(testUser['userData'] as Map<String, dynamic>);
+          await _saveUserToStorage();
+          notifyListeners();
+          return true;
+        } catch (e) {
+          debugPrint('Erro ao criar usuário a partir dos dados de teste: $e');
+          debugPrint('Dados: ${testUser['userData']}');
+          return false;
+        }
+      }
 
-      if (response['success'] == true) {
-        _token = response['data']['token'];
-        _currentUser = User.fromJson(response['data']['user']);
+      // SE NÃO FOR USUÁRIO DE TESTE, TENTAR API (quando tiver backend)
+      try {
+        final response = await _apiService.post(
+          Constants.loginEndpoint,
+          {
+            'email': email,
+            'password': password,
+          },
+        );
 
-        await _saveUserToStorage();
-        notifyListeners();
-        return true;
+        if (response['success'] == true) {
+          _token = response['data']['token'];
+          _currentUser = User.fromJson(response['data']['user']);
+
+          await _saveUserToStorage();
+          notifyListeners();
+          return true;
+        }
+      } catch (e) {
+        // Se a API falhar (não tem backend ainda), retorna false
+        debugPrint('API não disponível, usando apenas usuários de teste');
       }
 
       return false;
@@ -78,15 +171,48 @@ class AuthService extends ChangeNotifier {
     try {
       _setLoading(true);
 
-      final response = await _apiService.post(
-        Constants.registerEndpoint,
-        userData,
-      );
-
-      if (response['success'] == true) {
-        // Após registro bem-sucedido, pode fazer login automaticamente
-        // ou redirecionar para tela de login
+      // PARA TESTE: aceitar qualquer registro
+      if (userData['email'] != null && userData['password'] != null) {
+        // Gerar ID único
+        final newId = _testUsers.length + 10;
+        
+        // Adicionar aos usuários de teste temporariamente
+        final email = userData['email'].toLowerCase();
+        _testUsers[email] = {
+          'password': userData['password'],
+          'userData': {
+            'id': newId,
+            'name': userData['name'] ?? 'Usuário',
+            'email': userData['email'],
+            'userType': userData['userType'] ?? Constants.tutorType,
+            'phone': userData['phone'] ?? '',
+            'location': userData['location'] ?? '',
+            'cnpj': userData['cnpj'] ?? '',
+            'crmv': userData['crmv'] ?? '',
+            'responsibleName': userData['responsibleName'] ?? '',
+            'storeType': userData['storeType'] ?? Constants.physicalStore,
+            'operatingHours': userData['operatingHours'] ?? '',
+            'securityQuestion': userData['securityQuestion'] ?? 'Qual o nome do seu primeiro animal de estimação?',
+            'securityAnswer': userData['securityAnswer'] ?? '',
+            'isActive': true,
+            'createdAt': DateTime.now().toIso8601String(),
+          }
+        };
         return true;
+      }
+
+      // Tentar API se disponível
+      try {
+        final response = await _apiService.post(
+          Constants.registerEndpoint,
+          userData,
+        );
+
+        if (response['success'] == true) {
+          return true;
+        }
+      } catch (e) {
+        debugPrint('API não disponível para registro');
       }
 
       return false;
@@ -102,6 +228,18 @@ class AuthService extends ChangeNotifier {
     try {
       _setLoading(true);
 
+      // Verificar usuários de teste
+      final testUser = _testUsers[email.toLowerCase()];
+      if (testUser != null) {
+        final userData = testUser['userData'] as Map<String, dynamic>;
+        if (userData['securityQuestion'] == question && 
+            userData['securityAnswer']?.toLowerCase() == answer.toLowerCase()) {
+          return true;
+        }
+        return false;
+      }
+
+      // Tentar API
       final response = await _apiService.post(
         Constants.forgotPasswordEndpoint,
         {
@@ -123,6 +261,13 @@ class AuthService extends ChangeNotifier {
   Future<bool> resetPassword(String email, String newPassword, String token) async {
     try {
       _setLoading(true);
+
+      // Para usuários de teste, apenas atualizar a senha
+      final testUser = _testUsers[email.toLowerCase()];
+      if (testUser != null) {
+        testUser['password'] = newPassword;
+        return true;
+      }
 
       final response = await _apiService.post(
         Constants.resetPasswordEndpoint,
@@ -209,6 +354,13 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> getSecurityQuestion(String email) async {
     try {
+      // Verificar usuários de teste
+      final testUser = _testUsers[email.toLowerCase()];
+      if (testUser != null) {
+        final userData = testUser['userData'] as Map<String, dynamic>;
+        return userData['securityQuestion'];
+      }
+
       final response = await _apiService.get(
         '${Constants.forgotPasswordEndpoint}/question?email=$email',
       );
@@ -256,5 +408,28 @@ class AuthService extends ChangeNotifier {
       default:
         return true;
     }
+  }
+
+  // MÉTODO PARA VER USUÁRIOS DE TESTE
+  String getTestUsersInfo() {
+    return '''
+USUÁRIOS DE TESTE:
+
+ADMINISTRADOR:
+Email: admin@test.com
+Senha: 123456
+
+TUTOR:
+Email: tutor@test.com  
+Senha: 123456
+
+LOJISTA:
+Email: lojista@test.com
+Senha: 123456
+
+VETERINÁRIO:
+Email: vet@test.com
+Senha: 123456
+    ''';
   }
 }
