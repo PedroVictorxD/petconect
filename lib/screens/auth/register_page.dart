@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:responsive_framework/responsive_framework.dart';
-
+import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../widgets/custom_button.dart';
-import '../../widgets/confirmation_dialog.dart';
-import '../../theme/app_theme.dart';
-import '../../utils/routes.dart';
-import '../../utils/validators.dart';
 import '../../utils/constants.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,36 +14,44 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _pageController = PageController();
+  int _currentStep = 0;
+  bool _isLoading = false;
+  String _selectedUserType = Constants.tutorType;
+  String _selectedStoreType = 'FISICA';
   
-  // Controllers básicos
+  // Chave do formulário para validação
+  final _formKey = GlobalKey<FormState>();
+
+  // Controllers
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _locationController = TextEditingController();
   final _phoneController = TextEditingController();
-  
-  // Controllers específicos
   final _cnpjController = TextEditingController();
-  final _crmvController = TextEditingController();
   final _responsibleNameController = TextEditingController();
   final _operatingHoursController = TextEditingController();
-  
-  // Perguntas de segurança
-  final _securityAnswer1Controller = TextEditingController();
-  final _securityAnswer2Controller = TextEditingController();
-  final _securityAnswer3Controller = TextEditingController();
-  
-  String _selectedUserType = Constants.tutorType;
-  String _selectedStoreType = Constants.physicalStore;
-  String _selectedSecurityQuestion1 = Constants.securityQuestions[0];
-  String _selectedSecurityQuestion2 = Constants.securityQuestions[1];
-  String _selectedSecurityQuestion3 = Constants.securityQuestions[2];
-  
-  int _currentStep = 0;
-  bool _isLoading = false;
+  final _crmvController = TextEditingController();
+
+  final List<Map<String, String>> _steps = [
+    {
+      'title': 'Dados Básicos',
+      'subtitle': 'Preencha suas informações pessoais',
+    },
+    {
+      'title': 'Tipo de Usuário',
+      'subtitle': 'Selecione como você usará a plataforma',
+    },
+    {
+      'title': 'Informações Específicas',
+      'subtitle': 'Complete seu perfil',
+    },
+    {
+      'title': 'Confirmação',
+      'subtitle': 'Revise seus dados antes de finalizar',
+    },
+  ];
 
   @override
   void dispose() {
@@ -60,178 +62,334 @@ class _RegisterPageState extends State<RegisterPage> {
     _locationController.dispose();
     _phoneController.dispose();
     _cnpjController.dispose();
-    _crmvController.dispose();
     _responsibleNameController.dispose();
     _operatingHoursController.dispose();
-    _securityAnswer1Controller.dispose();
-    _securityAnswer2Controller.dispose();
-    _securityAnswer3Controller.dispose();
-    _pageController.dispose();
+    _crmvController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('Criar Conta'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(Routes.login),
-        ),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            // Indicador de progresso
-            _buildProgressIndicator(),
-            
-            // Conteúdo das etapas
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildStep1(), // Tipo de usuário
-                  _buildStep2(), // Dados básicos
-                  _buildStep3(), // Dados específicos
-                  _buildStep4(), // Perguntas de segurança
+                  const SizedBox(height: 20),
+                  
+                  // Progress indicator
+                  _buildProgressIndicator(),
+                  
+                  const SizedBox(height: 40),
+                  
+                  // Título
+                  Text(
+                    _steps[_currentStep]['title']!,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  Text(
+                    _steps[_currentStep]['subtitle']!,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Content based on current step
+                  _buildStepContent(),
+                  
+                  const SizedBox(height: 40),
+                  
+                  // Navigation buttons
+                  _buildNavigationButtons(),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Link para login
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Já tem uma conta? ',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      TextButton(
+                        onPressed: () => context.go('/login'),
+                        child: const Text('Fazer Login'),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
-            
-            // Botões de navegação
-            _buildNavigationButtons(),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildProgressIndicator() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: List.generate(4, (index) {
-          final isActive = index <= _currentStep;
-          final isCompleted = index < _currentStep;
-          
-          return Expanded(
-            child: Row(
+    return Row(
+      children: List.generate(_steps.length, (index) {
+        final isCompleted = index < _currentStep;
+        final isCurrent = index == _currentStep;
+        
+        return Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: index < _steps.length - 1 ? 8 : 0),
+            child: Column(
               children: [
-                Expanded(
-                  child: Container(
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isActive 
-                          ? AppTheme.primaryColor 
-                          : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+                Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isCompleted || isCurrent ? Colors.green : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
+                const SizedBox(height: 8),
                 Container(
-                  width: 24,
-                  height: 24,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: isCompleted
-                        ? AppTheme.primaryColor
-                        : isActive
-                            ? AppTheme.primaryColor
-                            : Colors.grey[300],
+                    color: isCompleted ? Colors.green : (isCurrent ? Colors.green : Colors.grey[300]),
                     shape: BoxShape.circle,
                   ),
-                  child: isCompleted
-                      ? const Icon(Icons.check, color: Colors.white, size: 16)
-                      : Center(
-                          child: Text(
+                  child: Center(
+                    child: isCompleted
+                        ? const Icon(Icons.check, color: Colors.white, size: 20)
+                        : Text(
                             '${index + 1}',
                             style: TextStyle(
-                              color: isActive ? Colors.white : Colors.grey[600],
-                              fontSize: 12,
+                              color: isCurrent ? Colors.white : Colors.grey[600],
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
+                  ),
                 ),
               ],
             ),
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildStep1() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tipo de Usuário',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+  Widget _buildStepContent() {
+    switch (_currentStep) {
+      case 0:
+        return _buildBasicDataStep();
+      case 1:
+        return _buildUserTypeStep();
+      case 2:
+        return _buildSpecificDataStep();
+      case 3:
+        return _buildConfirmationStep();
+      default:
+        return Container();
+    }
+  }
+
+  Widget _buildBasicDataStep() {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _nameController,
+          decoration: const InputDecoration(
+            labelText: 'Nome Completo *',
+            hintText: 'Digite seu nome completo',
+            prefixIcon: Icon(Icons.person),
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Selecione o tipo de conta que deseja criar',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Nome é obrigatório';
+            }
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 16),
+        
+        TextFormField(
+          controller: _emailController,
+          decoration: const InputDecoration(
+            labelText: 'Email *',
+            hintText: 'Digite seu email',
+            prefixIcon: Icon(Icons.email),
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 32),
-          
-          // Cards de seleção de tipo de usuário
-          _buildUserTypeCard(
-            Constants.tutorType,
-            'Tutor',
-            'Para donos de pets que desejam gerenciar seus animais',
-            Icons.pets,
-            AppTheme.getUserTypeColor('tutor'),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Email é obrigatório';
+            }
+            if (!value.contains('@')) {
+              return 'Digite um email válido';
+            }
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 16),
+        
+        TextFormField(
+          controller: _passwordController,
+          obscureText: true,
+          decoration: const InputDecoration(
+            labelText: 'Senha *',
+            hintText: 'Digite sua senha',
+            prefixIcon: Icon(Icons.lock),
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 16),
-          _buildUserTypeCard(
-            Constants.lojistaType,
-            'Lojista',
-            'Para donos de lojas que vendem produtos para pets',
-            Icons.store,
-            AppTheme.getUserTypeColor('lojista'),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Senha é obrigatória';
+            }
+            if (value.length < 6) {
+              return 'Senha deve ter pelo menos 6 caracteres';
+            }
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 16),
+        
+        TextFormField(
+          controller: _confirmPasswordController,
+          obscureText: true,
+          decoration: const InputDecoration(
+            labelText: 'Confirmar Senha *',
+            hintText: 'Digite a senha novamente',
+            prefixIcon: Icon(Icons.lock_outline),
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 16),
-          _buildUserTypeCard(
-            Constants.veterinarioType,
-            'Veterinário',
-            'Para profissionais veterinários que oferecem serviços',
-            Icons.medical_services,
-            AppTheme.getUserTypeColor('veterinario'),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Confirmação de senha é obrigatória';
+            }
+            if (value != _passwordController.text) {
+              return 'Senhas não coincidem';
+            }
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 16),
+        
+        TextFormField(
+          controller: _locationController,
+          decoration: const InputDecoration(
+            labelText: 'Localização *',
+            hintText: 'Cidade, Estado',
+            prefixIcon: Icon(Icons.location_on),
+            border: OutlineInputBorder(),
           ),
-        ],
-      ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Localização é obrigatória';
+            }
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 16),
+        
+        TextFormField(
+          controller: _phoneController,
+          decoration: const InputDecoration(
+            labelText: 'Telefone *',
+            hintText: '(XX) XXXXX-XXXX',
+            prefixIcon: Icon(Icons.phone),
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Telefone é obrigatório';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUserTypeStep() {
+    return Column(
+      children: [
+        _buildUserTypeCard(
+          Constants.tutorType,
+          'Tutor de Pet',
+          'Encontre produtos, serviços e cuidados para seu pet',
+          Icons.pets,
+          Colors.blue,
+        ),
+        const SizedBox(height: 16),
+        _buildUserTypeCard(
+          Constants.lojistaType,
+          'Lojista',
+          'Venda produtos e serviços para pets',
+          Icons.store,
+          Colors.orange,
+        ),
+        const SizedBox(height: 16),
+        _buildUserTypeCard(
+          Constants.veterinarioType,
+          'Veterinário',
+          'Ofereça serviços veterinários e consultas',
+          Icons.medical_services,
+          Colors.green,
+        ),
+        const SizedBox(height: 16),
+        _buildUserTypeCard(
+          Constants.adminType,
+          'Administrador',
+          'Gerencie a plataforma e usuários',
+          Icons.admin_panel_settings,
+          Colors.red,
+        ),
+      ],
     );
   }
 
   Widget _buildUserTypeCard(String type, String title, String description, IconData icon, Color color) {
     final isSelected = _selectedUserType == type;
     
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         setState(() {
           _selectedUserType = type;
         });
       },
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected ? color : Colors.grey[300]!,
-            width: 2,
+            width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? color.withOpacity(0.05) : null,
+          color: isSelected ? color.withOpacity(0.1) : Colors.white,
         ),
         child: Row(
           children: [
@@ -250,515 +408,292 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? color : null,
+                      fontSize: 16,
+                      color: isSelected ? color : Colors.grey[800],
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: TextStyle(
                       color: Colors.grey[600],
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle, color: color, size: 24),
+              Icon(Icons.check_circle, color: color),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStep2() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSpecificDataStep() {
+    if (_selectedUserType == Constants.lojistaType) {
+      return Column(
         children: [
-          Text(
-            'Dados Básicos',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Preencha suas informações pessoais',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 32),
-          
-          CustomTextField(
-            label: 'Nome Completo',
-            controller: _nameController,
-            validator: Validators.validateName,
-            required: true,
-          ),
-          const SizedBox(height: 16),
-          
-          EmailField(
-            controller: _emailController,
-            validator: Validators.validateEmail,
-          ),
-          const SizedBox(height: 16),
-          
-          PasswordField(
-            controller: _passwordController,
-            validator: Validators.validatePassword,
-          ),
-          const SizedBox(height: 16),
-          
-          PasswordField(
-            labelText: 'Confirmar Senha',
-            hintText: 'Digite a senha novamente',
-            controller: _confirmPasswordController,
-            validator: (value) => Validators.validateConfirmPassword(
-              value,
-              _passwordController.text,
+          TextFormField(
+            controller: _cnpjController,
+            decoration: const InputDecoration(
+              labelText: 'CNPJ',
+              hintText: 'XX.XXX.XXX/XXXX-XX',
+              prefixIcon: Icon(Icons.business),
+              border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
-          
-          CustomTextField(
-            label: 'Localização',
-            controller: _locationController,
-            validator: (value) => Validators.validateRequired(value, 'Localização'),
-            hint: 'Cidade, Estado',
-            prefixIcon: const Icon(Icons.location_on),
-            required: true,
+          TextFormField(
+            controller: _responsibleNameController,
+            decoration: const InputDecoration(
+              labelText: 'Nome do Responsável',
+              hintText: 'Nome completo do responsável',
+              prefixIcon: Icon(Icons.person_outline),
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
-          
-          PhoneField(
-            controller: _phoneController,
-            validator: Validators.validatePhone,
+          TextFormField(
+            controller: _operatingHoursController,
+            decoration: const InputDecoration(
+              labelText: 'Horário de Funcionamento',
+              hintText: 'Ex: 08:00 às 18:00',
+              prefixIcon: Icon(Icons.access_time),
+              border: OutlineInputBorder(),
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStep3() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      );
+    } else if (_selectedUserType == Constants.veterinarioType) {
+      return Column(
         children: [
-          Text(
-            'Dados Específicos',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+          TextFormField(
+            controller: _crmvController,
+            decoration: const InputDecoration(
+              labelText: 'CRMV',
+              hintText: 'Número do registro CRMV',
+              prefixIcon: Icon(Icons.badge),
+              border: OutlineInputBorder(),
             ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'CRMV é obrigatório para veterinários';
+              }
+              return null;
+            },
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Informações específicas para ${_getUserTypeLabel(_selectedUserType)}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 32),
-          
-          // Campos específicos baseados no tipo de usuário
-          if (_selectedUserType == Constants.lojistaType) ..._buildLojistaFields(),
-          if (_selectedUserType == Constants.veterinarioType) ..._buildVeterinarioFields(),
-          if (_selectedUserType == Constants.tutorType) ..._buildTutorFields(),
         ],
-      ),
-    );
+      );
+    } else {
+      return Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green[200]!),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'Dados Básicos Completos',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Suas informações básicas estão completas. Você pode prosseguir para finalizar o cadastro.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.green[600]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
   }
 
-  List<Widget> _buildLojistaFields() {
-    return [
-      CNPJField(
-        controller: _cnpjController,
-        validator: Validators.validateCNPJ,
-        required: true,
-      ),
-      const SizedBox(height: 16),
-      
-      // Tipo de loja
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tipo de Loja *',
-            style: Theme.of(context).textTheme.labelLarge,
+  Widget _buildConfirmationStep() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.blue[200]!),
           ),
-          const SizedBox(height: 8),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: RadioListTile<String>(
-                  title: const Text('Física'),
-                  value: Constants.physicalStore,
-                  groupValue: _selectedStoreType,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStoreType = value!;
-                    });
-                  },
+              Text(
+                'Confirme seus dados:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[700],
                 ),
               ),
-              Expanded(
-                child: RadioListTile<String>(
-                  title: const Text('Virtual'),
-                  value: Constants.virtualStore,
-                  groupValue: _selectedStoreType,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStoreType = value!;
-                    });
-                  },
-                ),
-              ),
+              const SizedBox(height: 16),
+              _buildConfirmationItem('Nome', _nameController.text),
+              _buildConfirmationItem('Email', _emailController.text),
+              _buildConfirmationItem('Tipo', _getUserTypeLabel()),
+              _buildConfirmationItem('Localização', _locationController.text),
+              _buildConfirmationItem('Telefone', _phoneController.text),
             ],
           ),
-        ],
-      ),
-    ];
-  }
-
-  List<Widget> _buildVeterinarioFields() {
-    return [
-      CRMVField(
-        controller: _crmvController,
-        validator: Validators.validateCRMV,
-      ),
-      const SizedBox(height: 16),
-      
-      CustomTextField(
-        label: 'Horários de Funcionamento',
-        controller: _operatingHoursController,
-        hint: 'Ex: Segunda a Sexta, 8h às 18h',
-        prefixIcon: const Icon(Icons.access_time),
-        maxLines: 2,
-      ),
-    ];
-  }
-
-  List<Widget> _buildTutorFields() {
-    return [
-      CNPJField(
-        controller: _cnpjController,
-        validator: (value) => null, // CNPJ opcional para tutores
-        required: false,
-      ),
-      const SizedBox(height: 16),
-      
-      CustomTextField(
-        label: 'Nome do Responsável',
-        controller: _responsibleNameController,
-        hint: 'Nome de quem é responsável pelos pets',
-        prefixIcon: const Icon(Icons.person),
-      ),
-    ];
-  }
-
-  Widget _buildStep4() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Perguntas de Segurança',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Configure 3 perguntas de segurança para recuperação de senha',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 32),
-          
-          // Pergunta 1
-          _buildSecurityQuestionField(
-            1,
-            _selectedSecurityQuestion1,
-            _securityAnswer1Controller,
-            (value) {
-              setState(() {
-                _selectedSecurityQuestion1 = value!;
-              });
-            },
-          ),
-          const SizedBox(height: 20),
-          
-          // Pergunta 2
-          _buildSecurityQuestionField(
-            2,
-            _selectedSecurityQuestion2,
-            _securityAnswer2Controller,
-            (value) {
-              setState(() {
-                _selectedSecurityQuestion2 = value!;
-              });
-            },
-          ),
-          const SizedBox(height: 20),
-          
-          // Pergunta 3
-          _buildSecurityQuestionField(
-            3,
-            _selectedSecurityQuestion3,
-            _securityAnswer3Controller,
-            (value) {
-              setState(() {
-                _selectedSecurityQuestion3 = value!;
-              });
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSecurityQuestionField(
-    int number,
-    String selectedQuestion,
-    TextEditingController controller,
-    void Function(String?) onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Pergunta $number *',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: selectedQuestion,
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.help),
-          ),
-          items: Constants.securityQuestions.map((question) {
-            return DropdownMenuItem(
-              value: question,
-              child: Text(question),
-            );
-          }).toList(),
-          onChanged: onChanged,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Selecione uma pergunta';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 12),
-        CustomTextField(
-          label: 'Resposta $number',
-          controller: controller,
-          validator: (value) => Validators.validateRequired(value, 'Resposta'),
-          hint: 'Digite sua resposta',
-          prefixIcon: const Icon(Icons.edit),
-          required: true,
         ),
       ],
     );
   }
 
-  Widget _buildNavigationButtons() {
-    return Container(
-      padding: const EdgeInsets.all(20),
+  Widget _buildConfirmationItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_currentStep > 0) ...[
-            Expanded(
-              child: CustomButton(
-                text: 'Anterior',
-                type: ButtonType.outlined,
-                onPressed: _previousStep,
-              ),
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
-            const SizedBox(width: 16),
-          ],
+          ),
           Expanded(
-            flex: _currentStep == 0 ? 1 : 1,
-            child: CustomButton(
-              text: _currentStep == 3 ? 'Criar Conta' : 'Próximo',
-              onPressed: _isLoading ? null : _nextStep,
-              isLoading: _isLoading,
-            ),
+            child: Text(value.isEmpty ? 'Não informado' : value),
           ),
         ],
       ),
     );
   }
 
-  void _previousStep() {
-    if (_currentStep > 0) {
-      setState(() {
-        _currentStep--;
-      });
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+  String _getUserTypeLabel() {
+    switch (_selectedUserType) {
+      case Constants.tutorType:
+        return 'Tutor de Pet';
+      case Constants.lojistaType:
+        return 'Lojista';
+      case Constants.veterinarioType:
+        return 'Veterinário';
+      case Constants.adminType:
+        return 'Administrador';
+      default:
+        return 'Não selecionado';
     }
   }
 
-  void _nextStep() {
-    if (_currentStep < 3) {
-      if (_validateCurrentStep()) {
-        setState(() {
-          _currentStep++;
-        });
-        _pageController.nextPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+  Widget _buildNavigationButtons() {
+    return Row(
+      children: [
+        if (_currentStep > 0)
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  _currentStep--;
+                });
+              },
+              child: const Text('Anterior'),
+            ),
+          ),
+        
+        if (_currentStep > 0) const SizedBox(width: 16),
+        
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : _handleNext,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(_currentStep == _steps.length - 1 ? 'Finalizar Cadastro' : 'Próximo'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleNext() {
+    // Validar apenas no primeiro step (dados básicos)
+    if (_currentStep == 0) {
+      if (!_formKey.currentState!.validate()) {
+        return; // Não avança se a validação falhar
       }
+    }
+    
+    // Validar CRMV para veterinários no step 2
+    if (_currentStep == 2 && _selectedUserType == Constants.veterinarioType) {
+      if (!_formKey.currentState!.validate()) {
+        return;
+      }
+    }
+    
+    if (_currentStep < _steps.length - 1) {
+      setState(() {
+        _currentStep++;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Avançou para step ${_currentStep + 1}!'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 1),
+        ),
+      );
     } else {
       _handleRegister();
     }
   }
 
-  bool _validateCurrentStep() {
-    switch (_currentStep) {
-      case 0:
-        return _selectedUserType.isNotEmpty;
-      case 1:
-        return _nameController.text.isNotEmpty &&
-               _emailController.text.isNotEmpty &&
-               _passwordController.text.isNotEmpty &&
-               _confirmPasswordController.text.isNotEmpty &&
-               _locationController.text.isNotEmpty &&
-               _phoneController.text.isNotEmpty &&
-               Validators.validateEmail(_emailController.text) == null &&
-               Validators.validatePassword(_passwordController.text) == null &&
-               Validators.validateConfirmPassword(
-                 _confirmPasswordController.text,
-                 _passwordController.text,
-               ) == null;
-      case 2:
-        if (_selectedUserType == Constants.lojistaType) {
-          return Validators.validateCNPJ(_cnpjController.text) == null;
-        } else if (_selectedUserType == Constants.veterinarioType) {
-          return Validators.validateCRMV(_crmvController.text) == null;
-        }
-        return true;
-      case 3:
-        return _securityAnswer1Controller.text.isNotEmpty &&
-               _securityAnswer2Controller.text.isNotEmpty &&
-               _securityAnswer3Controller.text.isNotEmpty;
-      default:
-        return false;
-    }
-  }
-
-  Future<void> _handleRegister() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
+  void _handleRegister() {
     setState(() {
       _isLoading = true;
     });
-
-    try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      
-      final userData = _buildUserData();
-      
-      final success = await authService.register(userData);
-
-      if (success && mounted) {
-        await SuccessDialog.show(
-          context,
-          message: 'Conta criada com sucesso! Você pode fazer login agora.',
+    
+    // Simular registro
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 Conta criada com sucesso!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
         );
         
-        context.go(Routes.login);
-      } else if (mounted) {
-        await ErrorDialog.show(
-          context,
-          message: 'Erro ao criar conta. Verifique os dados e tente novamente.',
-        );
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            context.go('/login');
+          }
+        });
       }
-    } catch (e) {
-      if (mounted) {
-        await ErrorDialog.show(
-          context,
-          message: 'Erro ao criar conta. Verifique sua conexão e tente novamente.',
-        );
-      }
-    } finally {
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    }
-  }
-
-  Map<String, dynamic> _buildUserData() {
-    final data = {
-      'name': _nameController.text.trim(),
-      'email': _emailController.text.trim(),
-      'password': _passwordController.text,
-      'userType': _selectedUserType,
-      'location': _locationController.text.trim(),
-      'phone': _phoneController.text.replaceAll(RegExp(r'[^\d]'), ''),
-      'securityQuestions': [
-        {
-          'question': _selectedSecurityQuestion1,
-          'answer': _securityAnswer1Controller.text.trim(),
-        },
-        {
-          'question': _selectedSecurityQuestion2,
-          'answer': _securityAnswer2Controller.text.trim(),
-        },
-        {
-          'question': _selectedSecurityQuestion3,
-          'answer': _securityAnswer3Controller.text.trim(),
-        },
-      ],
-    };
-
-    // Adicionar dados específicos baseados no tipo de usuário
-    if (_selectedUserType == Constants.lojistaType) {
-      data['cnpj'] = _cnpjController.text.replaceAll(RegExp(r'[^\d]'), '');
-      data['storeType'] = _selectedStoreType;
-    } else if (_selectedUserType == Constants.veterinarioType) {
-      data['crmv'] = _crmvController.text.replaceAll(RegExp(r'[^\d]'), '');
-      if (_operatingHoursController.text.isNotEmpty) {
-        data['operatingHours'] = _operatingHoursController.text.trim();
-      }
-    } else if (_selectedUserType == Constants.tutorType) {
-      if (_cnpjController.text.isNotEmpty) {
-        data['cnpj'] = _cnpjController.text.replaceAll(RegExp(r'[^\d]'), '');
-      }
-      if (_responsibleNameController.text.isNotEmpty) {
-        data['responsibleName'] = _responsibleNameController.text.trim();
-      }
-    }
-
-    return data;
-  }
-
-  String _getUserTypeLabel(String userType) {
-    switch (userType) {
-      case Constants.tutorType:
-        return 'Tutor';
-      case Constants.lojistaType:
-        return 'Lojista';
-      case Constants.veterinarioType:
-        return 'Veterinário';
-      default:
-        return userType;
-    }
+    });
   }
 }
