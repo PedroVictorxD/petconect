@@ -398,4 +398,19 @@ class ApiService {
   Future<Map<String, dynamic>> deletePet(int petId, {String? token}) async {
     return delete('${Constants.petsEndpoint}/$petId', token: token);
   }
+
+  Future<Map<String, dynamic>> registerUser({
+    required String name,
+    required String email,
+    required String password,
+    required String userType,
+  }) async {
+    final data = {
+      'name': name,
+      'email': email,
+      'password': password,
+      'userType': userType,
+    };
+    return await post(Constants.registerEndpoint, data);
+  }
 }

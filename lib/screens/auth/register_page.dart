@@ -7,6 +7,7 @@ import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../utils/validators.dart';
+import '../../services/api_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -708,13 +709,29 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  void _handleRegister() {
+  void _handleRegister() async {
     setState(() {
       _isLoading = true;
     });
-    
-    // Simular registro
-    Future.delayed(const Duration(seconds: 2), () {
+
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final userType = _selectedUserType;
+
+    final apiService = ApiService();
+    final result = await apiService.registerUser(
+      name: name,
+      email: email,
+      password: password,
+      userType: userType,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success'] == true) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -723,19 +740,22 @@ class _RegisterPageState extends State<RegisterPage> {
             duration: Duration(seconds: 3),
           ),
         );
-        
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
             context.go('/login');
           }
         });
       }
-      
+    } else {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Erro ao cadastrar usuário'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
-    });
+    }
   }
 }

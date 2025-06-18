@@ -33,7 +33,7 @@ spring:
     allow-circular-references: true
 
 jwt:
-  secret: petconect-secret-key-2024-very-long-and-secure-jwt-secret-key
+  secret: HjYRFRA33EGMq7LNea0+IjDlUENWNrlJMaKz0VBgCTnDZ3r5jiTxxltGxKeThTmh
   expiration: 86400000 # 24 horas em millisegundos
 
 cors:
