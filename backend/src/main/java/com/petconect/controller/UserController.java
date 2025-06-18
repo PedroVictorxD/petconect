@@ -49,6 +49,67 @@ public class UserController {
         }
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(Authentication authentication) {
+        try {
+            User currentUser = (User) authentication.getPrincipal();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "user", currentUser
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(403).body(Map.of(
+                "success", false,
+                "message", "Acesso negado"
+            ));
+        }
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody User userDetails, Authentication authentication) {
+        try {
+            User currentUser = (User) authentication.getPrincipal();
+            
+            // Verificar se o usuário está tentando alterar dados de outro usuário
+            if (!currentUser.getId().equals(userDetails.getId())) {
+                return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Você só pode alterar seus próprios dados"
+                ));
+            }
+            
+            User updatedUser = userService.updateUser(currentUser.getId(), userDetails);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Perfil atualizado com sucesso",
+                "user", updatedUser
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    @DeleteMapping("/profile")
+    public ResponseEntity<?> deleteProfile(Authentication authentication) {
+        try {
+            User currentUser = (User) authentication.getPrincipal();
+            userService.deleteUser(currentUser.getId());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Conta excluída com sucesso"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(403).body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody User userDetails, Authentication authentication) {
         try {
@@ -56,7 +117,7 @@ public class UserController {
             
             // Apenas administradores podem editar outros usuários
             if (!currentUser.getUserType().equals(User.UserType.ADMINISTRADOR) && !currentUser.getId().equals(id)) {
-                return ResponseEntity.forbidden().body(Map.of(
+                return ResponseEntity.status(403).body(Map.of(
                     "success", false,
                     "message", "Você não tem permissão para editar este usuário"
                 ));
@@ -85,7 +146,7 @@ public class UserController {
             
             // Apenas administradores podem deletar usuários
             if (!currentUser.getUserType().equals(User.UserType.ADMINISTRADOR)) {
-                return ResponseEntity.forbidden().body(Map.of(
+                return ResponseEntity.status(403).body(Map.of(
                     "success", false,
                     "message", "Você não tem permissão para deletar usuários"
                 ));
@@ -112,7 +173,7 @@ public class UserController {
             
             // Apenas administradores podem ativar usuários
             if (!currentUser.getUserType().equals(User.UserType.ADMINISTRADOR)) {
-                return ResponseEntity.forbidden().body(Map.of(
+                return ResponseEntity.status(403).body(Map.of(
                     "success", false,
                     "message", "Você não tem permissão para ativar usuários"
                 ));

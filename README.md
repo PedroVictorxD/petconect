@@ -70,51 +70,36 @@ O **Pet Conect** é um sistema completo de gestão para o ecossistema pet, conec
 - Maven 3.6+
 - Git
 
-### 1. Clone o Repositório
+### 1. Instalar dependências
 ```bash
-git clone <repository-url>
-cd petconect
+sudo apt update
+sudo apt install openjdk-17-jdk postgresql postgresql-contrib maven git -y
 ```
 
-### 2. Configuração do Banco de Dados
-```sql
--- Conecte ao PostgreSQL
-psql -U postgres
-
--- Crie o banco de dados
+### 2. Configurar PostgreSQL
+```bash
+sudo -u postgres psql
 CREATE DATABASE petconect;
-
--- Verifique se foi criado
-\l
-
--- Saia do psql
 \q
 ```
 
-### 3. Configuração do Backend
+### 3. Baixar projeto
+```bash
+cd ~/Documents
+git clone <URL> petconect
+cd petconect
+```
+
+### 4. Rodar backend
 ```bash
 cd backend
-
-# Edite o application.yml se necessário
-# username: postgres
-# password: postgres
-
-# Instale as dependências
-mvn clean install
-
-# Execute a aplicação
 mvn spring-boot:run
 ```
 
-### 4. Configuração do Frontend
+### 5. Rodar frontend (em outro terminal)
 ```bash
 cd lib
-
-# Instale as dependências
-flutter pub get
-
-# Execute a aplicação
-flutter run
+flutter run -d web-server --web-port 3000
 ```
 
 ## 📁 Estrutura do Projeto

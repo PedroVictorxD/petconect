@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../utils/validators.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -289,16 +290,7 @@ class _RegisterPageState extends State<RegisterPage> {
             prefixIcon: Icon(Icons.badge),
             border: OutlineInputBorder(),
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'CPF é obrigatório';
-            }
-            // Validação básica de CPF (formato)
-            if (!RegExp(r'^\d{3}\.\d{3}\.\d{3}-\d{2}$').hasMatch(value)) {
-              return 'Digite um CPF válido (XXX.XXX.XXX-XX)';
-            }
-            return null;
-          },
+          validator: Validators.validateCPF,
         ),
         
         const SizedBox(height: 16),

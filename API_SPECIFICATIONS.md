@@ -1,22 +1,33 @@
-# Especificações da API - Pet Conect
+# 📋 Especificação da API Pet Conect
 
-## Base URL
+## 🔗 Base URL
 ```
 http://localhost:8080/api
 ```
 
-## Autenticação
-Todas as requisições (exceto login e registro) devem incluir o header:
+## 🔐 Autenticação
+A API utiliza JWT (JSON Web Token) para autenticação. Todos os endpoints protegidos requerem o header:
 ```
-Authorization: Bearer {token}
+Authorization: Bearer <token>
 ```
 
-## Endpoints
+## 📊 Códigos de Resposta
+- `200` - Sucesso
+- `201` - Criado com sucesso
+- `400` - Requisição inválida
+- `401` - Não autorizado
+- `403` - Proibido
+- `404` - Não encontrado
+- `500` - Erro interno do servidor
 
-### 1. Autenticação
+---
 
-#### POST /auth/login
-**Request:**
+## 🔐 Autenticação
+
+### POST /auth/login
+**Descrição:** Realiza login do usuário
+
+**Payload:**
 ```json
 {
   "email": "string",
@@ -24,438 +35,979 @@ Authorization: Bearer {token}
 }
 ```
 
-**Response (200):**
+**Resposta de Sucesso (200):**
 ```json
 {
   "success": true,
-  "data": {
-    "token": "string",
-    "user": {
-      "id": 1,
-      "name": "string",
-      "email": "string",
-      "userType": "ADMINISTRADOR|LOJISTA|TUTOR|VETERINARIO",
-      "phone": "string",
-      "location": "string",
-      "cnpj": "string (opcional)",
-      "crmv": "string (opcional)",
-      "responsibleName": "string (opcional)",
-      "storeType": "VIRTUAL|FISICA (opcional)",
-      "operatingHours": "string (opcional)",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    }
+  "message": "Login realizado com sucesso",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "userType": "TUTOR",
+    "phone": "(11) 99999-9999",
+    "location": "São Paulo, SP",
+    "cpf": "123.456.789-00",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z"
   }
 }
 ```
 
-#### POST /auth/register
-**Request:**
+**Resposta de Erro (400):**
+```json
+{
+  "success": false,
+  "message": "Email ou senha incorretos"
+}
+```
+
+---
+
+### POST /auth/register
+**Descrição:** Registra novo usuário
+
+**Payload:**
 ```json
 {
   "name": "string",
   "email": "string",
   "password": "string",
-  "userType": "ADMINISTRADOR|LOJISTA|TUTOR|VETERINARIO",
+  "userType": "TUTOR|LOJISTA|VETERINARIO",
   "phone": "string",
   "location": "string",
-  "cpf": "string (obrigatório para TUTOR, VETERINARIO, LOJISTA)",
-  "cnpj": "string (opcional para LOJISTA)",
-  "crmv": "string (opcional para VETERINARIO)",
-  "responsibleName": "string (opcional para LOJISTA)",
-  "storeType": "VIRTUAL|FISICA (opcional para LOJISTA)",
-  "operatingHours": "string (opcional para LOJISTA)",
+  "cpf": "string",
+  "cnpj": "string",
+  "crmv": "string",
+  "responsibleName": "string",
+  "storeType": "VIRTUAL|FISICA",
+  "operatingHours": "string",
   "securityQuestion": "string",
   "securityAnswer": "string"
 }
 ```
 
-**Response (201):**
+**Resposta de Sucesso (201):**
 ```json
 {
   "success": true,
-  "data": {
-    "token": "string",
-    "user": {
-      "id": 1,
-      "name": "string",
-      "email": "string",
-      "userType": "string",
-      // ... outros campos
-    }
+  "message": "Usuário cadastrado com sucesso",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 5,
+    "name": "Novo Usuário",
+    "email": "novo@example.com",
+    "userType": "TUTOR",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z"
   }
 }
 ```
 
-### 2. Produtos
+---
 
-#### GET /products
-**Query Parameters:**
-- `ownerId` (opcional): Filtrar por proprietário
+### POST /auth/forgot-password
+**Descrição:** Valida resposta de segurança para recuperação de senha
 
-**Response (200):**
+**Payload:**
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "string",
-      "description": "string",
-      "price": 0.0,
-      "imageUrl": "string (opcional)",
-      "measurementUnit": "KG|G|L|ML|UNIDADE|PACOTE",
-      "ownerId": 1,
-      "ownerName": "string",
-      "ownerLocation": "string",
-      "ownerPhone": "string",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    }
-  ]
+  "email": "string",
+  "securityAnswer": "string"
 }
 ```
 
-#### POST /products
-**Request:**
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Resposta de segurança correta"
+}
+```
+
+---
+
+### POST /auth/reset-password
+**Descrição:** Redefine a senha do usuário
+
+**Payload:**
+```json
+{
+  "email": "string",
+  "newPassword": "string"
+}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Senha redefinida com sucesso"
+}
+```
+
+---
+
+## 👥 Usuários
+
+### GET /users
+**Descrição:** Lista todos os usuários ativos (Apenas ADMIN)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Administrador",
+    "email": "admin@test.com",
+    "userType": "ADMINISTRADOR",
+    "phone": "(11) 99999-9999",
+    "location": "São Paulo, SP",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+]
+```
+
+---
+
+### GET /users/{id}
+**Descrição:** Busca usuário por ID
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "id": 2,
+  "name": "João Silva",
+  "email": "tutor@test.com",
+  "userType": "TUTOR",
+  "phone": "(11) 88888-8888",
+  "location": "Rio de Janeiro, RJ",
+  "cpf": "987.654.321-00",
+  "isActive": true,
+  "createdAt": "2024-01-02T00:00:00Z"
+}
+```
+
+---
+
+### GET /users/type/{userType}
+**Descrição:** Lista usuários por tipo (Apenas ADMIN)
+
+**Parâmetros:**
+- `userType`: TUTOR, LOJISTA, VETERINARIO, ADMINISTRADOR
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 2,
+    "name": "João Silva",
+    "email": "tutor@test.com",
+    "userType": "TUTOR",
+    "isActive": true
+  }
+]
+```
+
+---
+
+### PUT /users/{id}
+**Descrição:** Atualiza dados do usuário (ADMIN ou próprio usuário)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
+```json
+{
+  "name": "string",
+  "email": "string",
+  "phone": "string",
+  "location": "string",
+  "cpf": "string",
+  "cnpj": "string",
+  "crmv": "string",
+  "responsibleName": "string",
+  "storeType": "VIRTUAL|FISICA",
+  "operatingHours": "string",
+  "securityQuestion": "string",
+  "securityAnswer": "string"
+}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Usuário atualizado com sucesso",
+  "user": {
+    "id": 2,
+    "name": "João Silva Atualizado",
+    "email": "joao@example.com",
+    "userType": "TUTOR",
+    "isActive": true
+  }
+}
+```
+
+---
+
+### DELETE /users/{id}
+**Descrição:** Desativa usuário (Apenas ADMIN)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Usuário desativado com sucesso"
+}
+```
+
+---
+
+### POST /users/{id}/activate
+**Descrição:** Ativa usuário (Apenas ADMIN)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Usuário ativado com sucesso"
+}
+```
+
+---
+
+## 🛍️ Produtos
+
+### GET /products
+**Descrição:** Lista todos os produtos ativos
+
+**Parâmetros Opcionais:**
+- `ownerId`: ID do lojista para filtrar produtos
+
+**Exemplo:**
+```
+GET /products?ownerId=3
+```
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Ração Premium para Cães",
+    "description": "Ração de alta qualidade para cães adultos",
+    "price": 89.90,
+    "stock": 50,
+    "category": "Alimentação",
+    "imageUrl": "https://images.unsplash.com/photo-1601758228041-3caa5d9c6c5f?w=400&h=300&fit=crop",
+    "owner": {
+      "id": 3,
+      "name": "Pet Shop Central"
+    },
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+]
+```
+
+---
+
+### GET /products/{id}
+**Descrição:** Busca produto por ID
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "id": 1,
+  "name": "Ração Premium para Cães",
+  "description": "Ração de alta qualidade para cães adultos",
+  "price": 89.90,
+  "stock": 50,
+  "category": "Alimentação",
+  "imageUrl": "https://images.unsplash.com/photo-1601758228041-3caa5d9c6c5f?w=400&h=300&fit=crop",
+  "owner": {
+    "id": 3,
+    "name": "Pet Shop Central"
+  },
+  "isActive": true,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
+}
+```
+
+---
+
+### GET /products/category/{category}
+**Descrição:** Lista produtos por categoria
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Ração Premium para Cães",
+    "description": "Ração de alta qualidade para cães adultos",
+    "price": 89.90,
+    "stock": 50,
+    "category": "Alimentação",
+    "imageUrl": "https://images.unsplash.com/photo-1601758228041-3caa5d9c6c5f?w=400&h=300&fit=crop",
+    "owner": {
+      "id": 3,
+      "name": "Pet Shop Central"
+    },
+    "isActive": true
+  }
+]
+```
+
+---
+
+### POST /products
+**Descrição:** Cria novo produto (Apenas LOJISTA)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
 ```json
 {
   "name": "string",
   "description": "string",
-  "price": 0.0,
-  "imageUrl": "string (opcional)",
-  "measurementUnit": "KG|G|L|ML|UNIDADE|PACOTE",
-  "ownerId": 1
+  "price": 0.00,
+  "stock": 0,
+  "category": "string",
+  "imageUrl": "string"
 }
 ```
 
-#### PUT /products/{id}
-**Request:** Mesmo formato do POST
-
-#### DELETE /products/{id}
-
-### 3. Serviços
-
-#### GET /services
-**Query Parameters:**
-- `ownerId` (opcional): Filtrar por proprietário
-
-**Response (200):**
+**Resposta de Sucesso (201):**
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "string",
-      "description": "string",
-      "price": 0.0,
-      "ownerId": 1,
-      "ownerName": "string",
-      "ownerLocation": "string",
-      "ownerPhone": "string",
-      "ownerCrmv": "string",
-      "operatingHours": "string",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    }
-  ]
+  "message": "Produto criado com sucesso",
+  "product": {
+    "id": 5,
+    "name": "Novo Produto",
+    "description": "Descrição do produto",
+    "price": 45.00,
+    "stock": 10,
+    "category": "Brinquedos",
+    "imageUrl": "https://example.com/image.jpg",
+    "owner": {
+      "id": 3,
+      "name": "Pet Shop Central"
+    },
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
 }
 ```
 
-#### POST /services
-**Request:**
+---
+
+### PUT /products/{id}
+**Descrição:** Atualiza produto (Apenas proprietário)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
 ```json
 {
   "name": "string",
   "description": "string",
-  "price": 0.0,
-  "ownerId": 1,
-  "ownerCrmv": "string",
-  "operatingHours": "string"
+  "price": 0.00,
+  "stock": 0,
+  "category": "string",
+  "imageUrl": "string"
 }
 ```
 
-#### PUT /services/{id}
-**Request:** Mesmo formato do POST
-
-#### DELETE /services/{id}
-
-### 4. Pets
-
-#### GET /pets
-**Query Parameters:**
-- `ownerId` (opcional): Filtrar por proprietário
-
-**Response (200):**
+**Resposta de Sucesso (200):**
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "string",
-      "type": "CACHORRO|GATO|PASSARO|PEIXE|OUTRO",
-      "breed": "string",
-      "age": 0,
-      "weight": 0.0,
-      "activityLevel": "BAIXA|MODERADA|ALTA|MUITO_ALTA",
-      "ownerId": 1,
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    }
-  ]
+  "message": "Produto atualizado com sucesso",
+  "product": {
+    "id": 1,
+    "name": "Produto Atualizado",
+    "description": "Nova descrição",
+    "price": 99.90,
+    "stock": 25,
+    "category": "Alimentação",
+    "imageUrl": "https://example.com/new-image.jpg",
+    "owner": {
+      "id": 3,
+      "name": "Pet Shop Central"
+    },
+    "isActive": true,
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
 }
 ```
 
-#### POST /pets
-**Request:**
+---
+
+### DELETE /products/{id}
+**Descrição:** Exclui produto (Apenas proprietário)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Produto excluído com sucesso"
+}
+```
+
+---
+
+### PUT /products/{id}/stock
+**Descrição:** Atualiza estoque do produto (Apenas proprietário)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
+```json
+{
+  "stock": 100
+}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Estoque atualizado com sucesso"
+}
+```
+
+---
+
+## 🏥 Serviços
+
+### GET /services
+**Descrição:** Lista todos os serviços ativos
+
+**Parâmetros Opcionais:**
+- `ownerId`: ID do veterinário para filtrar serviços
+
+**Exemplo:**
+```
+GET /services?ownerId=4
+```
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Consulta Veterinária",
+    "description": "Consulta geral para pets",
+    "price": 120.00,
+    "category": "Saúde",
+    "imageUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&h=300&fit=crop",
+    "owner": {
+      "id": 4,
+      "name": "Dr. Maria Santos"
+    },
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+]
+```
+
+---
+
+### GET /services/{id}
+**Descrição:** Busca serviço por ID
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "id": 1,
+  "name": "Consulta Veterinária",
+  "description": "Consulta geral para pets",
+  "price": 120.00,
+  "category": "Saúde",
+  "imageUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&h=300&fit=crop",
+  "owner": {
+    "id": 4,
+    "name": "Dr. Maria Santos"
+  },
+  "isActive": true,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
+}
+```
+
+---
+
+### GET /services/category/{category}
+**Descrição:** Lista serviços por categoria
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Consulta Veterinária",
+    "description": "Consulta geral para pets",
+    "price": 120.00,
+    "category": "Saúde",
+    "imageUrl": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&h=300&fit=crop",
+    "owner": {
+      "id": 4,
+      "name": "Dr. Maria Santos"
+    },
+    "isActive": true
+  }
+]
+```
+
+---
+
+### POST /services
+**Descrição:** Cria novo serviço (Apenas VETERINARIO)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
+```json
+{
+  "name": "string",
+  "description": "string",
+  "price": 0.00,
+  "category": "string",
+  "imageUrl": "string"
+}
+```
+
+**Resposta de Sucesso (201):**
+```json
+{
+  "success": true,
+  "message": "Serviço criado com sucesso",
+  "service": {
+    "id": 5,
+    "name": "Novo Serviço",
+    "description": "Descrição do serviço",
+    "price": 150.00,
+    "category": "Saúde",
+    "imageUrl": "https://example.com/image.jpg",
+    "owner": {
+      "id": 4,
+      "name": "Dr. Maria Santos"
+    },
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+### PUT /services/{id}
+**Descrição:** Atualiza serviço (Apenas proprietário)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
+```json
+{
+  "name": "string",
+  "description": "string",
+  "price": 0.00,
+  "category": "string",
+  "imageUrl": "string"
+}
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Serviço atualizado com sucesso",
+  "service": {
+    "id": 1,
+    "name": "Serviço Atualizado",
+    "description": "Nova descrição",
+    "price": 130.00,
+    "category": "Saúde",
+    "imageUrl": "https://example.com/new-image.jpg",
+    "owner": {
+      "id": 4,
+      "name": "Dr. Maria Santos"
+    },
+    "isActive": true,
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+### DELETE /services/{id}
+**Descrição:** Exclui serviço (Apenas proprietário)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "success": true,
+  "message": "Serviço excluído com sucesso"
+}
+```
+
+---
+
+## 🐕 Pets
+
+### GET /pets
+**Descrição:** Lista todos os pets ativos
+
+**Parâmetros Opcionais:**
+- `ownerId`: ID do tutor para filtrar pets
+
+**Exemplo:**
+```
+GET /pets?ownerId=2
+```
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Rex",
+    "type": "CACHORRO",
+    "breed": "Golden Retriever",
+    "age": 3,
+    "weight": 25.5,
+    "imageUrl": "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+    "owner": {
+      "id": 2,
+      "name": "João Silva"
+    },
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+]
+```
+
+---
+
+### GET /pets/{id}
+**Descrição:** Busca pet por ID
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "id": 1,
+  "name": "Rex",
+  "type": "CACHORRO",
+  "breed": "Golden Retriever",
+  "age": 3,
+  "weight": 25.5,
+  "imageUrl": "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+  "owner": {
+    "id": 2,
+    "name": "João Silva"
+  },
+  "isActive": true,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
+}
+```
+
+---
+
+### GET /pets/type/{type}
+**Descrição:** Lista pets por tipo
+
+**Parâmetros:**
+- `type`: CACHORRO, GATO, PASSARO, PEIXE, OUTRO
+
+**Resposta de Sucesso (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Rex",
+    "type": "CACHORRO",
+    "breed": "Golden Retriever",
+    "age": 3,
+    "weight": 25.5,
+    "imageUrl": "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+    "owner": {
+      "id": 2,
+      "name": "João Silva"
+    },
+    "isActive": true
+  }
+]
+```
+
+---
+
+### POST /pets
+**Descrição:** Cadastra novo pet (Apenas TUTOR)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
 ```json
 {
   "name": "string",
   "type": "CACHORRO|GATO|PASSARO|PEIXE|OUTRO",
   "breed": "string",
   "age": 0,
-  "weight": 0.0,
-  "activityLevel": "BAIXA|MODERADA|ALTA|MUITO_ALTA",
-  "ownerId": 1
+  "weight": 0.00,
+  "imageUrl": "string"
 }
 ```
 
-#### PUT /pets/{id}
-**Request:** Mesmo formato do POST
-
-#### DELETE /pets/{id}
-
-### 5. Usuários
-
-#### GET /users
-**Query Parameters:**
-- `userType` (opcional): Filtrar por tipo de usuário
-
-**Response (200):**
+**Resposta de Sucesso (201):**
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "string",
-      "email": "string",
-      "userType": "string",
-      "phone": "string",
-      "location": "string",
-      "cnpj": "string (opcional)",
-      "crmv": "string (opcional)",
-      "responsibleName": "string (opcional)",
-      "storeType": "string (opcional)",
-      "operatingHours": "string (opcional)",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    }
-  ]
+  "message": "Pet cadastrado com sucesso",
+  "pet": {
+    "id": 4,
+    "name": "Novo Pet",
+    "type": "CACHORRO",
+    "breed": "Labrador",
+    "age": 2,
+    "weight": 20.0,
+    "imageUrl": "https://example.com/image.jpg",
+    "owner": {
+      "id": 2,
+      "name": "João Silva"
+    },
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
 }
 ```
 
-## Códigos de Status HTTP
+---
 
-- **200**: Sucesso
-- **201**: Criado com sucesso
-- **400**: Bad Request (dados inválidos)
-- **401**: Unauthorized (token inválido ou ausente)
-- **403**: Forbidden (sem permissão)
-- **404**: Not Found
-- **500**: Internal Server Error
+### PUT /pets/{id}
+**Descrição:** Atualiza pet (Apenas proprietário)
 
-## Estrutura de Resposta Padrão
+**Headers:**
+```
+Authorization: Bearer <token>
+```
 
-**Sucesso:**
+**Payload:**
+```json
+{
+  "name": "string",
+  "type": "CACHORRO|GATO|PASSARO|PEIXE|OUTRO",
+  "breed": "string",
+  "age": 0,
+  "weight": 0.00,
+  "imageUrl": "string"
+}
+```
+
+**Resposta de Sucesso (200):**
 ```json
 {
   "success": true,
-  "data": { ... }
+  "message": "Pet atualizado com sucesso",
+  "pet": {
+    "id": 1,
+    "name": "Rex Atualizado",
+    "type": "CACHORRO",
+    "breed": "Golden Retriever",
+    "age": 4,
+    "weight": 26.0,
+    "imageUrl": "https://example.com/new-image.jpg",
+    "owner": {
+      "id": 2,
+      "name": "João Silva"
+    },
+    "isActive": true,
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
 }
 ```
 
-**Erro:**
+---
+
+### DELETE /pets/{id}
+**Descrição:** Exclui pet (Apenas proprietário)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta de Sucesso (200):**
 ```json
 {
-  "success": false,
-  "error": "Mensagem de erro",
-  "statusCode": 400
+  "success": true,
+  "message": "Pet excluído com sucesso"
 }
 ```
 
-## Validações
+---
 
-### Usuário
+## 🔍 Exemplos de Uso
+
+### Exemplo 1: Login e Listagem de Produtos
+```bash
+# 1. Login
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "lojista@test.com", "password": "123456"}'
+
+# 2. Usar token para listar produtos
+curl -X GET http://localhost:8080/api/products \
+  -H "Authorization: Bearer <token>"
+```
+
+### Exemplo 2: Criar Produto
+```bash
+curl -X POST http://localhost:8080/api/products \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Brinquedo Novo",
+    "description": "Brinquedo interativo para cães",
+    "price": 35.00,
+    "stock": 20,
+    "category": "Brinquedos",
+    "imageUrl": "https://example.com/image.jpg"
+  }'
+```
+
+### Exemplo 3: Atualizar Estoque
+```bash
+curl -X PUT http://localhost:8080/api/products/1/stock \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"stock": 15}'
+```
+
+---
+
+## ⚠️ Validações e Regras de Negócio
+
+### Usuários
 - Email deve ser único
-- CPF obrigatório para TUTOR, VETERINARIO, LOJISTA
-- CNPJ obrigatório para LOJISTA
-- CRMV obrigatório para VETERINARIO
-- Senha mínimo 8 caracteres
+- CPF deve ser único (quando fornecido)
+- CNPJ deve ser único (quando fornecido)
+- CRMV deve ser único (quando fornecido)
+- Senha deve ter pelo menos 8 caracteres
 
-### Produto
-- Nome obrigatório
+### Produtos
+- Apenas LOJISTA pode criar produtos
+- Apenas proprietário pode editar/excluir
+- Preço e estoque devem ser positivos
+- Nome é obrigatório
+
+### Serviços
+- Apenas VETERINARIO pode criar serviços
+- Apenas proprietário pode editar/excluir
 - Preço deve ser positivo
-- Unidade de medida deve ser uma das opções válidas
+- Nome é obrigatório
 
-### Serviço
-- Nome obrigatório
-- Preço deve ser positivo
-- CRMV obrigatório para serviços veterinários
+### Pets
+- Apenas TUTOR pode cadastrar pets
+- Apenas proprietário pode editar/excluir
+- Idade e peso devem ser positivos
+- Nome é obrigatório
 
-### Pet
-- Nome obrigatório
-- Tipo deve ser uma das opções válidas
-- Idade deve ser positiva
-- Peso deve ser positivo
+---
 
-## Segurança
+## 🚀 Testando a API
 
-1. **JWT Token**: Implementar autenticação JWT
-2. **CORS**: Configurar CORS para permitir requisições do Flutter Web
-3. **Validação**: Validar todos os dados de entrada
-4. **Sanitização**: Sanitizar dados para prevenir SQL Injection
-5. **Rate Limiting**: Implementar rate limiting para prevenir abuso
+### Usando Postman
+1. Importe a coleção de endpoints
+2. Configure a variável de ambiente `baseUrl`
+3. Faça login e configure a variável `token`
+4. Teste os endpoints
 
-## Configurações Recomendadas
+### Usando cURL
+```bash
+# Teste de conectividade
+curl -X GET http://localhost:8080/api/products
 
-### application.properties
-```properties
-# Servidor
-server.port=8080
-server.servlet.context-path=/api
-
-# CORS
-spring.web.cors.allowed-origins=*
-spring.web.cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
-spring.web.cors.allowed-headers=*
-
-# JWT
-jwt.secret=sua_chave_secreta_muito_segura
-jwt.expiration=86400000
-
-# Banco de dados
-spring.datasource.url=jdbc:postgresql://localhost:5432/petconect
-spring.datasource.username=postgres
-spring.datasource.password=sua_senha
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-
-# Upload de arquivos
-spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=10MB
+# Login
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@test.com", "password": "123456"}'
 ```
 
-## Dependências Maven Recomendadas
-
-```xml
-<dependencies>
-    <!-- Spring Boot Starter Web -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    
-    <!-- Spring Boot Starter Data JPA -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    
-    <!-- Spring Boot Starter Security -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    
-    <!-- Spring Boot Starter Validation -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-validation</artifactId>
-    </dependency>
-    
-    <!-- PostgreSQL Driver -->
-    <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-    
-    <!-- JWT -->
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-api</artifactId>
-        <version>0.11.5</version>
-    </dependency>
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-impl</artifactId>
-        <version>0.11.5</version>
-        <scope>runtime</scope>
-    </dependency>
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-jackson</artifactId>
-        <version>0.11.5</version>
-        <scope>runtime</scope>
-    </dependency>
-    
-    <!-- Lombok (opcional) -->
-    <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-        <optional>true</optional>
-    </dependency>
-</dependencies>
+### Usando Swagger (se implementado)
+```
+http://localhost:8080/swagger-ui.html
 ```
 
-## Estrutura de Pacotes Recomendada
+---
 
-```
-com.petconect
-├── PetConectApplication.java
-├── config/
-│   ├── SecurityConfig.java
-│   ├── CorsConfig.java
-│   └── JwtConfig.java
-├── controller/
-│   ├── AuthController.java
-│   ├── ProductController.java
-│   ├── ServiceController.java
-│   ├── PetController.java
-│   └── UserController.java
-├── service/
-│   ├── AuthService.java
-│   ├── ProductService.java
-│   ├── ServiceService.java
-│   ├── PetService.java
-│   └── UserService.java
-├── repository/
-│   ├── ProductRepository.java
-│   ├── ServiceRepository.java
-│   ├── PetRepository.java
-│   └── UserRepository.java
-├── model/
-│   ├── User.java
-│   ├── Product.java
-│   ├── VetService.java
-│   └── Pet.java
-├── dto/
-│   ├── LoginRequest.java
-│   ├── RegisterRequest.java
-│   └── ApiResponse.java
-└── exception/
-    ├── GlobalExceptionHandler.java
-    └── CustomException.java
-```
-
-## Observações Importantes
-
-1. **Compatibilidade**: O app Flutter já está preparado para receber a API Spring Boot
-2. **Dados Demo**: Atualmente o app usa dados demo, mas está configurado para usar a API real
-3. **Fallback**: O app tem fallback para dados demo quando a API não está disponível
-4. **Testes**: Use os usuários de teste já configurados no app para testar a integração
-5. **Imagens**: Para upload de imagens, considere usar um serviço como AWS S3 ou similar
-6. **Logs**: Implemente logs adequados para debug e monitoramento 
+**Documentação criada para facilitar a integração e desenvolvimento** 📚 
