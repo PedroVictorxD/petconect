@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
@@ -72,76 +73,97 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    final isDesktop = ResponsiveBreakpoints.of(context).largerThan(TABLET);
+    
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Criar Conta'),
+        title: Text(
+          'Criar Conta',
+          style: TextStyle(fontSize: isMobile ? 18 : 20),
+        ),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(isMobile ? 16 : 20),
         child: Center(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: BoxConstraints(
+              maxWidth: isDesktop ? 500 : double.infinity,
+            ),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
+                  SizedBox(height: isMobile ? 16 : 20),
                   
                   // Progress indicator
-                  _buildProgressIndicator(),
+                  _buildProgressIndicator(isMobile),
                   
-                  const SizedBox(height: 40),
+                  SizedBox(height: isMobile ? 24 : 40),
                   
                   // Título
                   Text(
                     _steps[_currentStep]['title']!,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      fontSize: isMobile ? 20 : null,
                     ),
                   ),
                   
-                  const SizedBox(height: 8),
+                  SizedBox(height: isMobile ? 6 : 8),
                   
                   Text(
                     _steps[_currentStep]['subtitle']!,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.grey[600],
+                      fontSize: isMobile ? 14 : null,
                     ),
                   ),
                   
-                  const SizedBox(height: 32),
+                  SizedBox(height: isMobile ? 24 : 32),
                   
                   // Content based on current step
                   _buildStepContent(),
                   
-                  const SizedBox(height: 40),
+                  SizedBox(height: isMobile ? 24 : 40),
                   
                   // Navigation buttons
-                  _buildNavigationButtons(),
+                  _buildNavigationButtons(isMobile),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 16 : 24),
                   
                   // Link para login
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Já tem uma conta? ',
-                        style: TextStyle(color: Colors.grey[600]),
+                      Flexible(
+                        child: Text(
+                          'Já tem uma conta? ',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: isMobile ? 13 : null,
+                          ),
+                        ),
                       ),
                       TextButton(
                         onPressed: () => context.go('/login'),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: isMobile ? 2 : 4),
+                          textStyle: TextStyle(
+                            fontSize: isMobile ? 13 : null,
+                          ),
+                        ),
                         child: const Text('Fazer Login'),
                       ),
                     ],
                   ),
                   
-                  const SizedBox(height: 20),
+                  SizedBox(height: isMobile ? 16 : 20),
                 ],
               ),
             ),
@@ -151,7 +173,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildProgressIndicator(bool isMobile) {
     return Row(
       children: List.generate(_steps.length, (index) {
         final isCompleted = index < _currentStep;
@@ -159,32 +181,37 @@ class _RegisterPageState extends State<RegisterPage> {
         
         return Expanded(
           child: Container(
-            margin: EdgeInsets.only(right: index < _steps.length - 1 ? 8 : 0),
+            margin: EdgeInsets.only(right: index < _steps.length - 1 ? (isMobile ? 4 : 8) : 0),
             child: Column(
               children: [
                 Container(
-                  height: 4,
+                  height: isMobile ? 3 : 4,
                   decoration: BoxDecoration(
                     color: isCompleted || isCurrent ? Colors.green : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isMobile ? 6 : 8),
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: isMobile ? 24 : 32,
+                  height: isMobile ? 24 : 32,
                   decoration: BoxDecoration(
                     color: isCompleted ? Colors.green : (isCurrent ? Colors.green : Colors.grey[300]),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: isCompleted
-                        ? const Icon(Icons.check, color: Colors.white, size: 20)
+                        ? Icon(
+                            Icons.check, 
+                            color: Colors.white, 
+                            size: isMobile ? 16 : 20
+                          )
                         : Text(
                             '${index + 1}',
                             style: TextStyle(
                               color: isCurrent ? Colors.white : Colors.grey[600],
                               fontWeight: FontWeight.bold,
+                              fontSize: isMobile ? 12 : null,
                             ),
                           ),
                   ),
@@ -609,29 +636,37 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  Widget _buildNavigationButtons() {
-    return Row(
+  Widget _buildNavigationButtons(bool isMobile) {
+    return Column(
       children: [
-        if (_currentStep > 0)
-          Expanded(
+        if (_currentStep > 0) ...[
+          SizedBox(
+            width: double.infinity,
             child: OutlinedButton(
               onPressed: () {
                 setState(() {
                   _currentStep--;
                 });
               },
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16),
+                textStyle: TextStyle(fontSize: isMobile ? 14 : 16),
+              ),
               child: const Text('Anterior'),
             ),
           ),
+          SizedBox(height: isMobile ? 12 : 16),
+        ],
         
-        if (_currentStep > 0) const SizedBox(width: 16),
-        
-        Expanded(
+        SizedBox(
+          width: double.infinity,
           child: ElevatedButton(
             onPressed: _isLoading ? null : _handleNext,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16),
+              textStyle: TextStyle(fontSize: isMobile ? 14 : 16),
             ),
             child: _isLoading
                 ? const SizedBox(

@@ -35,6 +35,7 @@ class _VetHomepageState extends State<VetHomepage> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthService>(context).currentUser;
     final isDesktop = ResponsiveBreakpoints.of(context).largerThan(TABLET);
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -52,11 +53,11 @@ class _VetHomepageState extends State<VetHomepage> {
         child: Column(
           children: [
             // Header com estatísticas e busca
-            _buildHeader(context, user, isDesktop),
+            _buildHeader(context, user, isDesktop, isMobile),
             
             // Lista de serviços
             Expanded(
-              child: _buildServicesList(context, isDesktop),
+              child: _buildServicesList(context, isDesktop, isMobile),
             ),
           ],
         ),
@@ -64,17 +65,17 @@ class _VetHomepageState extends State<VetHomepage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showServiceDialog(context),
         icon: const Icon(Icons.add),
-        label: const Text('Novo Serviço'),
+        label: Text(isMobile ? 'Novo' : 'Novo Serviço'),
         backgroundColor: AppTheme.getUserTypeColor('veterinario'),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, user, bool isDesktop) {
+  Widget _buildHeader(BuildContext context, user, bool isDesktop, bool isMobile) {
     final filteredServices = _getFilteredServices();
     
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -91,18 +92,18 @@ class _VetHomepageState extends State<VetHomepage> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.medical_services,
                   color: Colors.white,
-                  size: 32,
+                  size: isMobile ? 24 : 32,
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: isMobile ? 12 : 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,6 +113,7 @@ class _VetHomepageState extends State<VetHomepage> {
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        fontSize: isMobile ? 16 : null,
                       ),
                     ),
                     if (user?.crmv != null)
@@ -119,12 +121,14 @@ class _VetHomepageState extends State<VetHomepage> {
                         'CRMV: ${user!.crmv}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.white.withOpacity(0.9),
+                          fontSize: isMobile ? 12 : null,
                         ),
                       ),
                     Text(
                       '${_services.length} serviços cadastrados',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.white.withOpacity(0.9),
+                        fontSize: isMobile ? 12 : null,
                       ),
                     ),
                   ],
@@ -133,7 +137,7 @@ class _VetHomepageState extends State<VetHomepage> {
             ],
           ),
           
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 16 : 20),
           
           // Estatísticas
           if (isDesktop)
@@ -146,6 +150,18 @@ class _VetHomepageState extends State<VetHomepage> {
                 Expanded(child: _buildStatCard('Valor Médio', _calculateAveragePrice(), Icons.attach_money)),
               ],
             )
+          else if (isMobile)
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: _buildStatCard('Total', _services.length.toString(), Icons.medical_services)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildStatCard('Valor Médio', _calculateAveragePrice(), Icons.attach_money)),
+                  ],
+                ),
+              ],
+            )
           else
             Row(
               children: [
@@ -155,7 +171,7 @@ class _VetHomepageState extends State<VetHomepage> {
               ],
             ),
           
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 16 : 20),
           
           // Barra de busca
           TextField(
@@ -228,7 +244,7 @@ class _VetHomepageState extends State<VetHomepage> {
     );
   }
 
-  Widget _buildServicesList(BuildContext context, bool isDesktop) {
+  Widget _buildServicesList(BuildContext context, bool isDesktop, bool isMobile) {
     final filteredServices = _getFilteredServices();
 
     if (filteredServices.isEmpty && !_isLoading) {
@@ -239,7 +255,9 @@ class _VetHomepageState extends State<VetHomepage> {
       onRefresh: _loadServices,
       child: isDesktop
           ? _buildDesktopGrid(filteredServices)
-          : _buildMobileList(filteredServices),
+          : isMobile
+              ? _buildMobileList(filteredServices)
+              : _buildMobileList(filteredServices),
     );
   }
 

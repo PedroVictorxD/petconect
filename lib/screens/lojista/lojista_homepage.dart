@@ -35,6 +35,7 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthService>(context).currentUser;
     final isDesktop = ResponsiveBreakpoints.of(context).largerThan(TABLET);
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -52,11 +53,11 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
         child: Column(
           children: [
             // Header com estatísticas e busca
-            _buildHeader(context, user, isDesktop),
+            _buildHeader(context, user, isDesktop, isMobile),
             
             // Lista de produtos
             Expanded(
-              child: _buildProductsList(context, isDesktop),
+              child: _buildProductsList(context, isDesktop, isMobile),
             ),
           ],
         ),
@@ -64,17 +65,17 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showProductDialog(context),
         icon: const Icon(Icons.add),
-        label: const Text('Novo Produto'),
+        label: Text(isMobile ? 'Novo' : 'Novo Produto'),
         backgroundColor: AppTheme.primaryColor,
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, user, bool isDesktop) {
+  Widget _buildHeader(BuildContext context, user, bool isDesktop, bool isMobile) {
     final filteredProducts = _getFilteredProducts();
     
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -99,6 +100,18 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
                 Expanded(child: _buildStatCard('Valor Médio', _calculateAveragePrice(), Icons.attach_money)),
               ],
             )
+          else if (isMobile)
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: _buildStatCard('Total', _products.length.toString(), Icons.inventory)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildStatCard('Valor Médio', _calculateAveragePrice(), Icons.attach_money)),
+                  ],
+                ),
+              ],
+            )
           else
             Row(
               children: [
@@ -108,7 +121,7 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
               ],
             ),
           
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 16 : 20),
           
           // Barra de busca
           TextField(
@@ -138,24 +151,28 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
   }
 
   Widget _buildStatCard(String label, String value, IconData icon) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isMobile ? 12 : 16),
         child: Column(
           children: [
-            Icon(icon, color: AppTheme.primaryColor, size: 24),
-            const SizedBox(height: 8),
+            Icon(icon, color: AppTheme.primaryColor, size: isMobile ? 20 : 24),
+            SizedBox(height: isMobile ? 6 : 8),
             Text(
               value,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppTheme.primaryColor,
+                fontSize: isMobile ? 16 : null,
               ),
             ),
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.grey[600],
+                fontSize: isMobile ? 11 : null,
               ),
               textAlign: TextAlign.center,
             ),
@@ -165,7 +182,7 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
     );
   }
 
-  Widget _buildProductsList(BuildContext context, bool isDesktop) {
+  Widget _buildProductsList(BuildContext context, bool isDesktop, bool isMobile) {
     final filteredProducts = _getFilteredProducts();
 
     if (filteredProducts.isEmpty && !_isLoading) {
@@ -176,7 +193,7 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
       onRefresh: _loadProducts,
       child: isDesktop
           ? _buildDesktopGrid(filteredProducts)
-          : _buildMobileList(filteredProducts),
+          : _buildMobileList(filteredProducts, isMobile),
     );
   }
 
@@ -196,7 +213,7 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
     );
   }
 
-  Widget _buildMobileList(List<Product> products) {
+  Widget _buildMobileList(List<Product> products, bool isMobile) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: products.length,

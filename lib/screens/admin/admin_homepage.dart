@@ -57,6 +57,7 @@ class _AdminHomepageState extends State<AdminHomepage> with TickerProviderStateM
   Widget build(BuildContext context) {
     final user = Provider.of<AuthService>(context).currentUser;
     final isDesktop = ResponsiveBreakpoints.of(context).largerThan(TABLET);
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -74,21 +75,28 @@ class _AdminHomepageState extends State<AdminHomepage> with TickerProviderStateM
         child: Column(
           children: [
             // Header com informações do admin
-            _buildAdminHeader(context, user),
+            _buildAdminHeader(context, user, isMobile),
             
             // Tab bar
             Container(
               color: Colors.white,
               child: TabBar(
                 controller: _tabController,
-                tabs: const [
-                  Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'),
-                  Tab(icon: Icon(Icons.people), text: 'Usuários'),
+                tabs: [
+                  Tab(
+                    icon: Icon(Icons.dashboard, size: isMobile ? 20 : 24),
+                    text: isMobile ? 'Dashboard' : 'Dashboard',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.people, size: isMobile ? 20 : 24),
+                    text: isMobile ? 'Usuários' : 'Usuários',
+                  ),
                 ],
                 labelColor: AppTheme.getUserTypeColor('admin'),
                 unselectedLabelColor: Colors.grey[600],
                 indicatorColor: AppTheme.getUserTypeColor('admin'),
                 isScrollable: !isDesktop,
+                labelStyle: TextStyle(fontSize: isMobile ? 12 : 14),
               ),
             ),
             
@@ -97,8 +105,8 @@ class _AdminHomepageState extends State<AdminHomepage> with TickerProviderStateM
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildDashboardTab(context, isDesktop),
-                  _buildUsersTab(context),
+                  _buildDashboardTab(context, isDesktop, isMobile),
+                  _buildUsersTab(context, isMobile),
                 ],
               ),
             ),
@@ -108,9 +116,9 @@ class _AdminHomepageState extends State<AdminHomepage> with TickerProviderStateM
     );
   }
 
-  Widget _buildAdminHeader(BuildContext context, user) {
+  Widget _buildAdminHeader(BuildContext context, user, bool isMobile) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -121,84 +129,95 @@ class _AdminHomepageState extends State<AdminHomepage> with TickerProviderStateM
           ],
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.admin_panel_settings,
-              color: Colors.white,
-              size: 32,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.admin_panel_settings,
+                  color: Colors.white,
+                  size: isMobile ? 24 : 32,
+                ),
+              ),
+              SizedBox(width: isMobile ? 12 : 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Administrador',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: isMobile ? 18 : null,
+                      ),
+                    ),
+                    Text(
+                      user?.name ?? 'Admin',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: isMobile ? 14 : null,
+                      ),
+                    ),
+                    Text(
+                      'Painel de controle do sistema',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: isMobile ? 12 : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Administrador',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+          if (!isMobile) ...[
+            SizedBox(height: 16),
+            // Status do sistema
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.green.shade300),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                Text(
-                  user?.name ?? 'Admin',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sistema Online',
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-                Text(
-                  'Painel de controle do sistema',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          // Status do sistema
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.green.shade300),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Sistema Online',
-                  style: TextStyle(
-                    color: Colors.green.shade700,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildDashboardTab(BuildContext context, bool isDesktop) {
+  Widget _buildDashboardTab(BuildContext context, bool isDesktop, bool isMobile) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -467,7 +486,7 @@ class _AdminHomepageState extends State<AdminHomepage> with TickerProviderStateM
     );
   }
 
-  Widget _buildUsersTab(BuildContext context) {
+  Widget _buildUsersTab(BuildContext context, bool isMobile) {
     return const UserManagement();
   }
 

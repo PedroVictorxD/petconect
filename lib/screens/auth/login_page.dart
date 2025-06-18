@@ -148,6 +148,7 @@ class _LoginPageState extends State<LoginPage>
   @override
   Widget build(BuildContext context) {
     final isDesktop = ResponsiveBreakpoints.of(context).largerThan(TABLET);
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
     final screenSize = MediaQuery.of(context).size;
     
     return Scaffold(
@@ -168,13 +169,13 @@ class _LoginPageState extends State<LoginPage>
                 child: Center(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isDesktop ? 40 : 24,
-                      vertical: 20,
+                      horizontal: isMobile ? 16 : (isDesktop ? 40 : 24),
+                      vertical: isMobile ? 16 : 20,
                     ),
                     child: Container(
                       constraints: BoxConstraints(
                         maxWidth: isDesktop ? 500 : double.infinity,
-                        minHeight: screenSize.height * 0.7,
+                        minHeight: isMobile ? screenSize.height * 0.8 : screenSize.height * 0.7,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -186,28 +187,28 @@ class _LoginPageState extends State<LoginPage>
                               opacity: _heroFadeAnimation,
                               child: ScaleTransition(
                                 scale: _heroScaleAnimation,
-                                child: _buildAnimatedHeader(context),
+                                child: _buildAnimatedHeader(context, isMobile),
                               ),
                             ),
                           ),
                           
-                          SizedBox(height: isDesktop ? 50 : 40),
+                          SizedBox(height: isMobile ? 30 : (isDesktop ? 50 : 40)),
                           
                           // Login form
                           SlideTransition(
                             position: _formSlideAnimation,
                             child: FadeTransition(
                               opacity: _formFadeAnimation,
-                              child: _buildCleanLoginForm(context, isDesktop),
+                              child: _buildCleanLoginForm(context, isDesktop, isMobile),
                             ),
                           ),
                           
-                          const SizedBox(height: 24),
+                          SizedBox(height: isMobile ? 20 : 24),
                           
                           // Navigation links
                           FadeTransition(
                             opacity: _formFadeAnimation,
-                            child: _buildNavigationLinks(context),
+                            child: _buildNavigationLinks(context, isMobile),
                           ),
                         ],
                       ),
@@ -218,9 +219,9 @@ class _LoginPageState extends State<LoginPage>
               
               // Back button
               Positioned(
-                top: MediaQuery.of(context).padding.top + 10,
-                left: 20,
-                child: _buildBackButton(context),
+                top: MediaQuery.of(context).padding.top + (isMobile ? 8 : 10),
+                left: isMobile ? 12 : 20,
+                child: _buildBackButton(context, isMobile),
               ),
             ],
           ),
@@ -270,11 +271,11 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildBackButton(BuildContext context) {
+  Widget _buildBackButton(BuildContext context, bool isMobile) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
         border: Border.all(
           color: Colors.grey.withOpacity(0.2),
         ),
@@ -283,13 +284,13 @@ class _LoginPageState extends State<LoginPage>
         color: Colors.transparent,
         child: InkWell(
           onTap: () => context.go(Routes.landing),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(isMobile ? 8 : 12),
             child: Icon(
               Icons.arrow_back_ios_new,
               color: AppTheme.primaryColor,
-              size: 20,
+              size: isMobile ? 16 : 20,
             ),
           ),
         ),
@@ -297,12 +298,12 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildAnimatedHeader(BuildContext context) {
+  Widget _buildAnimatedHeader(BuildContext context, bool isMobile) {
     return Column(
       children: [
         // Logo simples sem sombras
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -314,12 +315,12 @@ class _LoginPageState extends State<LoginPage>
           ),
           child: Icon(
             Icons.pets,
-            size: 48,
+            size: isMobile ? 36 : 48,
             color: AppTheme.primaryColor,
           ),
         ),
         
-        const SizedBox(height: 32),
+        SizedBox(height: isMobile ? 20 : 32),
         
         // Title with gradient text
         ShaderMask(
@@ -334,15 +335,19 @@ class _LoginPageState extends State<LoginPage>
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
+              fontSize: isMobile ? 24 : null,
             ),
           ),
         ),
         
-        const SizedBox(height: 12),
+        SizedBox(height: isMobile ? 8 : 12),
         
         // Welcome text
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 16 : 20, 
+            vertical: isMobile ? 8 : 10
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(25),
@@ -355,17 +360,19 @@ class _LoginPageState extends State<LoginPage>
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppTheme.primaryColor,
               fontWeight: FontWeight.w600,
+              fontSize: isMobile ? 14 : null,
             ),
           ),
         ),
         
-        const SizedBox(height: 8),
+        SizedBox(height: isMobile ? 6 : 8),
         
         Text(
           'Entre com suas credenciais para acessar sua conta',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Colors.grey[600],
             height: 1.4,
+            fontSize: isMobile ? 13 : null,
           ),
           textAlign: TextAlign.center,
         ),
@@ -373,7 +380,7 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildCleanLoginForm(BuildContext context, bool isDesktop) {
+  Widget _buildCleanLoginForm(BuildContext context, bool isDesktop, bool isMobile) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
@@ -384,7 +391,7 @@ class _LoginPageState extends State<LoginPage>
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(isDesktop ? 40 : 32),
+        padding: EdgeInsets.all(isMobile ? 16 : (isDesktop ? 40 : 32)),
         child: Form(
           key: _formKey,
           child: Column(
@@ -689,27 +696,29 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildNavigationLinks(BuildContext context) {
+  Widget _buildNavigationLinks(BuildContext context, bool isMobile) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Não tem uma conta? ',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 15,
+            Flexible(
+              child: Text(
+                'Não tem uma conta? ',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: isMobile ? 13 : 15,
+                ),
               ),
             ),
             TextButton(
               onPressed: () => context.go(Routes.register),
               style: TextButton.styleFrom(
                 foregroundColor: AppTheme.primaryColor,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                textStyle: const TextStyle(
+                padding: EdgeInsets.symmetric(horizontal: isMobile ? 2 : 4),
+                textStyle: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 15,
+                  fontSize: isMobile ? 13 : 15,
                 ),
               ),
               child: const Text('Cadastre-se aqui'),
