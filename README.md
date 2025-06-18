@@ -1,6 +1,21 @@
-# pet_system
+# Pet Conect
 
-A new Flutter project.
+Sistema de conexão e gerenciamento para pets - uma plataforma completa que conecta tutores, veterinários e lojistas em um ecossistema único.
+
+## Funcionalidades
+
+- **Calculadora Inteligente**: IA que calcula a quantidade ideal de ração baseada no peso, idade e atividade do pet
+- **Marketplace Premium**: Encontre produtos e serviços verificados na sua região com entrega rápida
+- **Telemedicina Veterinária**: Conecte-se com veterinários certificados para consultas online e presenciais
+- **Gestão de Pets**: Gerencie seus pets e encontre os melhores produtos
+- **Painel Administrativo**: Gerencie toda a plataforma com ferramentas avançadas
+
+## Tipos de Usuário
+
+- **Tutores**: Gerencie seus pets e encontre os melhores produtos
+- **Lojistas**: Venda produtos e alcance milhares de clientes
+- **Veterinários**: Ofereça consultas e serviços especializados
+- **Administradores**: Gerencie toda a plataforma com ferramentas avançadas
 
 ## Getting Started
 

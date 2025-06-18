@@ -330,12 +330,10 @@ class _LoginPageState extends State<LoginPage>
             ],
           ).createShader(bounds),
           child: Text(
-            'Pet System',
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-              fontWeight: FontWeight.bold,
+            'Pet Conect',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: Colors.white,
-              letterSpacing: 1.5,
-              fontSize: 36,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

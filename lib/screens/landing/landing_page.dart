@@ -200,7 +200,7 @@ class _LandingPageState extends State<LandingPage>
             ),
             const SizedBox(width: 12),
             Text(
-              'Pet System',
+              'Pet Conect',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: _showNavBarBackground
                     ? AppTheme.primaryColor
@@ -1060,7 +1060,7 @@ class _LandingPageState extends State<LandingPage>
               ),
               SizedBox(height: isMobile ? 12 : 16),
               Text(
-                'Milhares de pessoas já confiam no Pet System',
+                'Milhares de pessoas já confiam no Pet Conect',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.grey[600],
                   fontSize: isMobile ? 14 : null,
@@ -1074,7 +1074,7 @@ class _LandingPageState extends State<LandingPage>
                         Expanded(child: _buildTestimonialCard(
                           'Ana Silva',
                           'Tutora de 2 pets',
-                          'O Pet System revolucionou como cuido dos meus pets. A calculadora de ração é incrível!',
+                          'O Pet Conect revolucionou como cuido dos meus pets. A calculadora de ração é incrível!',
                           '⭐⭐⭐⭐⭐',
                         )),
                         const SizedBox(width: 30),
@@ -1088,7 +1088,7 @@ class _LandingPageState extends State<LandingPage>
                         Expanded(child: _buildTestimonialCard(
                           'Maria Lopes',
                           'Proprietária Pet Shop',
-                          'Aumentei minhas vendas em 300% desde que comecei a usar o Pet System.',
+                          'Aumentei minhas vendas em 300% desde que comecei a usar o Pet Conect.',
                           '⭐⭐⭐⭐⭐',
                         )),
                       ],
@@ -1098,7 +1098,7 @@ class _LandingPageState extends State<LandingPage>
                         _buildTestimonialCard(
                           'Ana Silva',
                           'Tutora de 2 pets',
-                          'O Pet System revolucionou como cuido dos meus pets. A calculadora de ração é incrível!',
+                          'O Pet Conect revolucionou como cuido dos meus pets. A calculadora de ração é incrível!',
                           '⭐⭐⭐⭐⭐',
                         ),
                         SizedBox(height: isMobile ? 20 : 30),
@@ -1112,7 +1112,7 @@ class _LandingPageState extends State<LandingPage>
                         _buildTestimonialCard(
                           'Maria Lopes',
                           'Proprietária Pet Shop',
-                          'Aumentei minhas vendas em 300% desde que comecei a usar o Pet System.',
+                          'Aumentei minhas vendas em 300% desde que comecei a usar o Pet Conect.',
                           '⭐⭐⭐⭐⭐',
                         ),
                       ],
@@ -1371,7 +1371,7 @@ class _LandingPageState extends State<LandingPage>
                   ),
                   SizedBox(width: isMobile ? 12 : 16),
                   Text(
-                    'Pet System',
+                    'Pet Conect',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -1412,7 +1412,7 @@ class _LandingPageState extends State<LandingPage>
                   ? Column(
                       children: [
                         Text(
-                          '© 2024 Pet System. Todos os direitos reservados.',
+                          '© 2024 Pet Conect. Todos os direitos reservados.',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey[500],
                             fontSize: 12,
@@ -1451,7 +1451,7 @@ class _LandingPageState extends State<LandingPage>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '© 2024 Pet System. Todos os direitos reservados.',
+                          '© 2024 Pet Conect. Todos os direitos reservados.',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey[500],
                           ),

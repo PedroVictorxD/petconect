@@ -1,11 +1,11 @@
 {
-    "name": "pet_system",
-    "short_name": "pet_system",
+    "name": "Pet Conect",
+    "short_name": "Pet Conect",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Sistema de conexão e gerenciamento para pets",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
