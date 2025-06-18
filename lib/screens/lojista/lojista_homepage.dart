@@ -10,6 +10,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/constants.dart';
 import 'product_form_dialog.dart';
 
 class LojistaHomepage extends StatefulWidget {
@@ -250,12 +251,9 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
               child: product.imageUrl != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        product.imageUrl!,
+                      child: SafeImageWidget(
+                        imageUrl: product.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildPlaceholderImage();
-                        },
                       ),
                     )
                   : _buildPlaceholderImage(),
@@ -329,12 +327,9 @@ class _LojistaHomepageState extends State<LojistaHomepage> {
         child: product.imageUrl != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  product.imageUrl!,
+                child: SafeImageWidget(
+                  imageUrl: product.imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildPlaceholderImage();
-                  },
                 ),
               )
             : _buildPlaceholderImage(),

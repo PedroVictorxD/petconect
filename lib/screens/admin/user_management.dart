@@ -162,18 +162,20 @@ class _UserManagementState extends State<UserManagement> {
               const SizedBox(width: 12),
               
               // Filtro por tipo
-              Expanded(
+              Flexible(
                 child: DropdownButtonFormField<String>(
                   value: _selectedUserType,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.filter_list),
+                    isDense: true,
                   ),
+                  isExpanded: true,
                   items: [
-                    const DropdownMenuItem(value: 'TODOS', child: Text('Todos')),
-                    DropdownMenuItem(value: Constants.adminType, child: Text('Administradores')),
-                    DropdownMenuItem(value: Constants.lojistaType, child: Text('Lojistas')),
-                    DropdownMenuItem(value: Constants.tutorType, child: Text('Tutores')),
-                    DropdownMenuItem(value: Constants.veterinarioType, child: Text('Veterinários')),
+                    const DropdownMenuItem(value: 'TODOS', child: Text('Todos', overflow: TextOverflow.ellipsis)),
+                    DropdownMenuItem(value: Constants.adminType, child: Text('Administradores', overflow: TextOverflow.ellipsis)),
+                    DropdownMenuItem(value: Constants.lojistaType, child: Text('Lojistas', overflow: TextOverflow.ellipsis)),
+                    DropdownMenuItem(value: Constants.tutorType, child: Text('Tutores', overflow: TextOverflow.ellipsis)),
+                    DropdownMenuItem(value: Constants.veterinarioType, child: Text('Veterinários', overflow: TextOverflow.ellipsis)),
                   ],
                   onChanged: (value) {
                     setState(() {

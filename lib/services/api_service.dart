@@ -167,19 +167,146 @@ class ApiService {
     if (error is SocketException) {
       return {
         'success': false,
-        'error': Constants.networkErrorMessage,
+        'error': 'Servidor não disponível. Usando dados de demonstração.',
+        'data': _getDemoData(),
       };
     } else if (error is http.ClientException) {
       return {
         'success': false,
-        'error': 'Erro de conexão com o servidor',
+        'error': 'Servidor não disponível. Usando dados de demonstração.',
+        'data': _getDemoData(),
       };
     } else {
       return {
         'success': false,
-        'error': Constants.genericErrorMessage,
+        'error': 'Erro desconhecido. Usando dados de demonstração.',
+        'data': _getDemoData(),
       };
     }
+  }
+
+  Map<String, dynamic> _getDemoData() {
+    // Retorna dados de demonstração quando o servidor não está disponível
+    return {
+      'users': [
+        {
+          'id': 1,
+          'name': 'João Silva',
+          'email': 'joao@example.com',
+          'userType': 'ADMINISTRADOR',
+          'cpf': '123.456.789-00',
+          'phone': '(11) 99999-9999',
+          'isActive': true,
+          'createdAt': '2024-01-01T00:00:00Z',
+        },
+        {
+          'id': 2,
+          'name': 'Maria Santos',
+          'email': 'maria@example.com',
+          'userType': 'TUTOR',
+          'cpf': '987.654.321-00',
+          'phone': '(11) 88888-8888',
+          'isActive': true,
+          'createdAt': '2024-01-02T00:00:00Z',
+        },
+        {
+          'id': 3,
+          'name': 'Pedro Costa',
+          'email': 'pedro@example.com',
+          'userType': 'VETERINARIO',
+          'cpf': '456.789.123-00',
+          'phone': '(11) 77777-7777',
+          'isActive': true,
+          'createdAt': '2024-01-03T00:00:00Z',
+        },
+        {
+          'id': 4,
+          'name': 'Ana Oliveira',
+          'email': 'ana@example.com',
+          'userType': 'LOJISTA',
+          'cpf': '789.123.456-00',
+          'phone': '(11) 66666-6666',
+          'isActive': true,
+          'createdAt': '2024-01-04T00:00:00Z',
+        },
+      ],
+      'products': [
+        {
+          'id': 1,
+          'name': 'Ração Premium para Cães',
+          'description': 'Ração de alta qualidade para cães adultos',
+          'price': 89.90,
+          'stock': 50,
+          'ownerId': 4,
+          'ownerName': 'Ana Oliveira',
+          'imageUrl': 'https://images.unsplash.com/photo-1601758228041-3caa5d9c6c5f?w=400&h=300&fit=crop',
+          'category': 'Alimentação',
+          'isActive': true,
+        },
+        {
+          'id': 2,
+          'name': 'Brinquedo Interativo',
+          'description': 'Brinquedo para estimular a mente do pet',
+          'price': 45.00,
+          'stock': 30,
+          'ownerId': 4,
+          'ownerName': 'Ana Oliveira',
+          'imageUrl': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop',
+          'category': 'Brinquedos',
+          'isActive': true,
+        },
+      ],
+      'services': [
+        {
+          'id': 1,
+          'name': 'Consulta Veterinária',
+          'description': 'Consulta geral para pets',
+          'price': 120.00,
+          'ownerId': 3,
+          'ownerName': 'Pedro Costa',
+          'imageUrl': 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&h=300&fit=crop',
+          'category': 'Saúde',
+          'isActive': true,
+        },
+        {
+          'id': 2,
+          'name': 'Vacinação',
+          'description': 'Aplicação de vacinas essenciais',
+          'price': 80.00,
+          'ownerId': 3,
+          'ownerName': 'Pedro Costa',
+          'imageUrl': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+          'category': 'Saúde',
+          'isActive': true,
+        },
+      ],
+      'pets': [
+        {
+          'id': 1,
+          'name': 'Rex',
+          'type': 'CACHORRO',
+          'breed': 'Golden Retriever',
+          'age': 3,
+          'weight': 25.5,
+          'ownerId': 2,
+          'ownerName': 'Maria Santos',
+          'imageUrl': 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop',
+          'isActive': true,
+        },
+        {
+          'id': 2,
+          'name': 'Mia',
+          'type': 'GATO',
+          'breed': 'Persa',
+          'age': 2,
+          'weight': 4.2,
+          'ownerId': 2,
+          'ownerName': 'Maria Santos',
+          'imageUrl': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=300&fit=crop',
+          'isActive': true,
+        },
+      ],
+    };
   }
 
   // Métodos específicos para diferentes recursos

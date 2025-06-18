@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../models/product.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/loading_widget.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../theme/app_theme.dart';
 import '../../utils/validators.dart';
 import '../../utils/constants.dart';
 
@@ -202,35 +205,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          _imageUrlController.text,
+        child: SafeImageWidget(
+          imageUrl: _imageUrlController.text,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey[200],
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.broken_image, color: Colors.grey[400]),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Não foi possível carregar a imagem',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              color: Colors.grey[200],
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          },
         ),
       ),
     );
