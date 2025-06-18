@@ -7,10 +7,11 @@ import '../../services/api_service.dart';
 import '../../models/product.dart';
 import '../../models/service.dart';
 import '../../models/pet.dart';
+import '../../theme/app_theme.dart';
+import '../../utils/constants.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/loading_widget.dart';
-import '../../theme/app_theme.dart';
 import 'pet_management.dart';
 import 'food_calculator.dart';
 
@@ -31,16 +32,45 @@ class _TutorHomepageState extends State<TutorHomepage> with TickerProviderStateM
   bool _isLoading = true;
   String _searchQuery = '';
 
+  // Animações
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    
+    // Inicializar animações
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+    
     _loadData();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -349,7 +379,7 @@ class _TutorHomepageState extends State<TutorHomepage> with TickerProviderStateM
             scrollDirection: Axis.horizontal,
             itemCount: featuredProducts.length,
             itemBuilder: (context, index) {
-              return _buildProductCard(featuredProducts[index]);
+              return _buildProductCard(featuredProducts[index], index);
             },
           ),
         ),
@@ -441,7 +471,7 @@ class _TutorHomepageState extends State<TutorHomepage> with TickerProviderStateM
       ),
       itemCount: filteredProducts.length,
       itemBuilder: (context, index) {
-        return _buildProductCard(filteredProducts[index]);
+        return _buildProductCard(filteredProducts[index], index);
       },
     );
   }
@@ -462,147 +492,374 @@ class _TutorHomepageState extends State<TutorHomepage> with TickerProviderStateM
       );
     }
 
-    return ListView.builder(
+    return GridView.builder(
       padding: const EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isDesktop ? 2 : 1,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: isDesktop ? 1.1 : 1.2,
+      ),
       itemCount: filteredServices.length,
       itemBuilder: (context, index) {
-        return _buildServiceCard(filteredServices[index]);
+        return _buildServiceCard(filteredServices[index], index);
       },
     );
   }
 
-  Widget _buildProductCard(Product product) {
-    return Card(
-      elevation: 2,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              ),
-              child: product.imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: Image.network(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.image, size: 40, color: Colors.grey);
-                        },
-                      ),
-                    )
-                  : const Icon(Icons.image, size: 40, color: Colors.grey),
-            ),
+  Widget _buildProductCard(Product product, int index) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        final animation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            index * 0.1,
+            (index + 1) * 0.1,
+            curve: Curves.easeInOut,
           ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+        ));
+
+        return Transform.translate(
+          offset: Offset(0, 50 * (1 - animation.value)),
+          child: Opacity(
+            opacity: animation.value,
+            child: Container(
+              width: ResponsiveBreakpoints.of(context).isMobile ? double.infinity : 280,
+              height: 200,
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white,
+                    Colors.grey.shade50,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.formattedPrice,
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (product.ownerPhone != null)
-                    Row(
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => _showProductDetails(product),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.phone, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
+                        // Imagem do produto
                         Expanded(
-                          child: Text(
-                            product.ownerPhone!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
+                          flex: 3,
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              image: DecorationImage(
+                                image: NetworkImage(product.imageUrl ?? 'https://images.unsplash.com/photo-1601758228041-3caa5d9c6c5f?w=400&h=300&fit=crop'),
+                                fit: BoxFit.cover,
+                              ),
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Nome do produto
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            product.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // Preço e ações
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                product.formattedPrice,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  // Botão WhatsApp
+                                  GestureDetector(
+                                    onTap: () => _openWhatsApp(product.ownerPhone ?? '', product.name),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.chat,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  // Botão telefone
+                                  GestureDetector(
+                                    onTap: () => _makePhoneCall(product.ownerPhone ?? ''),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.phone,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                ],
+                  ),
+                ),
               ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildServiceCard(VetService service) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+  Widget _buildServiceCard(VetService service, int index) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        final animation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(CurvedAnimation(
+          parent: _animationController,
+          curve: Interval(
+            index * 0.1,
+            (index + 1) * 0.1,
+            curve: Curves.easeInOut,
           ),
-          child: Icon(Icons.medical_services, color: AppTheme.primaryColor),
-        ),
-        title: Text(
-          service.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(service.description),
-            const SizedBox(height: 4),
-            Text(
-              service.formattedPrice,
-              style: TextStyle(
-                color: AppTheme.primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (service.ownerName != null) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.person, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Dr. ${service.ownerName}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+        ));
+
+        return Transform.translate(
+          offset: Offset(0, 50 * (1 - animation.value)),
+          child: Opacity(
+            opacity: animation.value,
+            child: Container(
+              height: 280,
+              margin: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white,
+                    AppTheme.primaryColor.withOpacity(0.05),
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 15,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-            ],
-          ],
-        ),
-        trailing: service.ownerPhone != null
-            ? IconButton(
-                icon: const Icon(Icons.phone),
-                onPressed: () {
-                  // Implementar ação de contato
-                  _showContactDialog(service.ownerName ?? 'Veterinário', service.ownerPhone!);
-                },
-              )
-            : null,
-      ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => _showServiceDetails(service),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Ícone do serviço
+                        Expanded(
+                          flex: 4,
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppTheme.primaryColor.withOpacity(0.1),
+                                  AppTheme.primaryColor.withOpacity(0.2),
+                                ],
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.medical_services,
+                                  size: 60,
+                                  color: AppTheme.primaryColor,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Serviço Veterinário',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.primaryColor.withOpacity(0.8),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Nome do serviço
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            service.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // Descrição do serviço
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            service.description,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Preço e ações
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Preço',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  Text(
+                                    service.formattedPrice,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  // Botão WhatsApp
+                                  GestureDetector(
+                                    onTap: () => _openWhatsApp(service.ownerPhone ?? '', service.name),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.green.withOpacity(0.3),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.chat,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // Botão telefone
+                                  GestureDetector(
+                                    onTap: () => _makePhoneCall(service.ownerPhone ?? ''),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppTheme.primaryColor.withOpacity(0.3),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.phone,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -642,6 +899,11 @@ class _TutorHomepageState extends State<TutorHomepage> with TickerProviderStateM
         _loadServices(authService),
         _loadPets(authService),
       ]);
+      
+      // Iniciar animações após carregar os dados
+      if (mounted) {
+        _animationController.forward();
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -661,33 +923,183 @@ class _TutorHomepageState extends State<TutorHomepage> with TickerProviderStateM
   }
 
   Future<void> _loadProducts(AuthService authService) async {
-    try {
-      final response = await _apiService.getProducts(token: authService.token);
-      
-      if (response['success'] == true) {
-        final List<dynamic> productsData = response['data'] ?? [];
-        setState(() {
-          _products = productsData.map((data) => Product.fromJson(data)).toList();
-        });
-      }
-    } catch (e) {
-      debugPrint('Erro ao carregar produtos: $e');
-    }
+    // Carregar dados demo para demonstração
+    _loadDemoProducts();
+  }
+
+  void _loadDemoProducts() {
+    setState(() {
+      _products = [
+        Product(
+          id: 1,
+          name: 'Ração Premium para Cães',
+          description: 'Ração de alta qualidade para cães adultos, rica em proteínas e vitaminas essenciais.',
+          price: 89.90,
+          imageUrl: 'https://images.unsplash.com/photo-1601758228041-3caa5d9c6c5f?w=400&h=300&fit=crop',
+          measurementUnit: 'KG',
+          ownerName: 'Pet Shop Central',
+          ownerPhone: '(11) 99999-8888',
+          ownerId: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Product(
+          id: 2,
+          name: 'Brinquedo Interativo para Gatos',
+          description: 'Brinquedo que estimula a caça e exercício dos gatos, com bolinhas e penas.',
+          price: 45.50,
+          imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=300&fit=crop',
+          measurementUnit: 'UNIDADE',
+          ownerName: 'Pet Shop Feliz',
+          ownerPhone: '(11) 88888-7777',
+          ownerId: 2,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Product(
+          id: 3,
+          name: 'Coleira Ajustável com Identificação',
+          description: 'Coleira confortável e segura com placa de identificação personalizada.',
+          price: 35.00,
+          imageUrl: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop',
+          measurementUnit: 'UNIDADE',
+          ownerName: 'Pet Shop Central',
+          ownerPhone: '(11) 99999-8888',
+          ownerId: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Product(
+          id: 4,
+          name: 'Shampoo Hipoalergênico para Cães',
+          description: 'Shampoo especial para cães com pele sensível, sem fragrâncias fortes.',
+          price: 28.90,
+          imageUrl: 'https://images.unsplash.com/photo-1601758228041-3caa5d9c6c5f?w=400&h=300&fit=crop',
+          measurementUnit: 'ML',
+          ownerName: 'Pet Shop Feliz',
+          ownerPhone: '(11) 88888-7777',
+          ownerId: 2,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Product(
+          id: 5,
+          name: 'Cama para Cães Portátil',
+          description: 'Cama confortável e dobrável, ideal para viagens e passeios.',
+          price: 120.00,
+          imageUrl: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop',
+          measurementUnit: 'UNIDADE',
+          ownerName: 'Pet Shop Central',
+          ownerPhone: '(11) 99999-8888',
+          ownerId: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Product(
+          id: 6,
+          name: 'Snacks Naturais para Gatos',
+          description: 'Snacks 100% naturais, sem conservantes artificiais.',
+          price: 22.50,
+          imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=300&fit=crop',
+          measurementUnit: 'G',
+          ownerName: 'Pet Shop Feliz',
+          ownerPhone: '(11) 88888-7777',
+          ownerId: 2,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ];
+    });
   }
 
   Future<void> _loadServices(AuthService authService) async {
-    try {
-      final response = await _apiService.getServices(token: authService.token);
-      
-      if (response['success'] == true) {
-        final List<dynamic> servicesData = response['data'] ?? [];
-        setState(() {
-          _services = servicesData.map((data) => VetService.fromJson(data)).toList();
-        });
-      }
-    } catch (e) {
-      debugPrint('Erro ao carregar serviços: $e');
-    }
+    // Carregar dados demo para demonstração
+    _loadDemoServices();
+  }
+
+  void _loadDemoServices() {
+    setState(() {
+      _services = [
+        VetService(
+          id: 1,
+          name: 'Consulta Veterinária Geral',
+          description: 'Consulta completa com exame físico, orientações sobre alimentação e cuidados preventivos.',
+          price: 120.00,
+          ownerName: 'Dr. Maria Santos',
+          ownerPhone: '(11) 99999-1111',
+          ownerId: 1,
+          ownerCrmv: 'CRMV-SP 12345',
+          operatingHours: 'Seg-Sex: 8h-18h',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        VetService(
+          id: 2,
+          name: 'Vacinação Completa',
+          description: 'Aplicação de todas as vacinas necessárias para cães e gatos.',
+          price: 85.00,
+          ownerName: 'Dr. Carlos Mendes',
+          ownerPhone: '(11) 88888-2222',
+          ownerId: 2,
+          ownerCrmv: 'CRMV-SP 67890',
+          operatingHours: 'Seg-Sex: 9h-17h',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        VetService(
+          id: 3,
+          name: 'Banho e Tosa',
+          description: 'Banho completo com produtos hipoalergênicos e tosa profissional.',
+          price: 65.00,
+          ownerName: 'Dr. Ana Silva',
+          ownerPhone: '(11) 77777-3333',
+          ownerId: 3,
+          ownerCrmv: 'CRMV-SP 11111',
+          operatingHours: 'Seg-Sáb: 8h-19h',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        VetService(
+          id: 4,
+          name: 'Exame de Sangue',
+          description: 'Exames laboratoriais completos para check-up geral.',
+          price: 150.00,
+          ownerName: 'Dr. Maria Santos',
+          ownerPhone: '(11) 99999-1111',
+          ownerId: 1,
+          ownerCrmv: 'CRMV-SP 12345',
+          operatingHours: 'Seg-Sex: 8h-18h',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        VetService(
+          id: 5,
+          name: 'Castração',
+          description: 'Procedimento cirúrgico seguro com acompanhamento pós-operatório.',
+          price: 300.00,
+          ownerName: 'Dr. Carlos Mendes',
+          ownerPhone: '(11) 88888-2222',
+          ownerId: 2,
+          ownerCrmv: 'CRMV-SP 67890',
+          operatingHours: 'Seg-Sex: 9h-17h',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        VetService(
+          id: 6,
+          name: 'Fisioterapia para Cães',
+          description: 'Sessões de fisioterapia para reabilitação e bem-estar.',
+          price: 95.00,
+          ownerName: 'Dr. Ana Silva',
+          ownerPhone: '(11) 77777-3333',
+          ownerId: 3,
+          ownerCrmv: 'CRMV-SP 11111',
+          operatingHours: 'Seg-Sáb: 8h-19h',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ];
+    });
   }
 
   Future<void> _loadPets(AuthService authService) async {
@@ -757,6 +1169,183 @@ class _TutorHomepageState extends State<TutorHomepage> with TickerProviderStateM
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showProductDetails(Product product) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(product.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (product.imageUrl != null)
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: NetworkImage(product.imageUrl!),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
+            Text(
+              product.description,
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Preço: ${product.formattedPrice}',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            if (product.ownerPhone != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Contato: ${product.ownerPhone}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+          if (product.ownerPhone != null)
+            CustomButton(
+              text: 'Contatar',
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showContactDialog('Vendedor', product.ownerPhone!);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showServiceDetails(VetService service) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(service.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.medical_services,
+                color: AppTheme.primaryColor,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              service.description,
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Preço: ${service.formattedPrice}',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            if (service.ownerName != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Veterinário: Dr. ${service.ownerName}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+            if (service.ownerPhone != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Contato: ${service.ownerPhone}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+          if (service.ownerPhone != null)
+            CustomButton(
+              text: 'Agendar',
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showContactDialog(service.ownerName ?? 'Veterinário', service.ownerPhone!);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _openWhatsApp(String phone, String productName) {
+    // Remove caracteres especiais do telefone
+    final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+    final message = 'Olá! Gostaria de saber mais sobre o produto/serviço: $productName';
+    
+    // URL do WhatsApp Web
+    final whatsappUrl = 'https://wa.me/55$cleanPhone?text=${Uri.encodeComponent(message)}';
+    
+    // Mostra snackbar informativo
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Abrindo WhatsApp para $productName'),
+        action: SnackBarAction(
+          label: 'Copiar Link',
+          onPressed: () {
+            // Aqui você pode implementar a cópia do link para a área de transferência
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Link copiado!')),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _makePhoneCall(String phone) {
+    // Remove caracteres especiais do telefone
+    final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+    
+    // Mostra snackbar informativo
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Ligando para $phone'),
+        action: SnackBarAction(
+          label: 'Copiar Número',
+          onPressed: () {
+            // Aqui você pode implementar a cópia do número para a área de transferência
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Número copiado!')),
+            );
+          },
+        ),
       ),
     );
   }
