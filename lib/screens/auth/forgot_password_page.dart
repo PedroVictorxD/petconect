@@ -20,7 +20,10 @@ class ForgotPasswordPage extends StatefulWidget {
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _answerController = TextEditingController();
+  final _answerPetController = TextEditingController();
+  final _answerCarController = TextEditingController();
+  final _answerFriendController = TextEditingController();
+  final _newPasswordController = TextEditingController();
   
   String? _securityQuestion;
   bool _isLoading = false;
@@ -29,7 +32,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   void dispose() {
     _emailController.dispose();
-    _answerController.dispose();
+    _answerPetController.dispose();
+    _answerCarController.dispose();
+    _answerFriendController.dispose();
+    _newPasswordController.dispose();
     super.dispose();
   }
 
@@ -181,14 +187,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 // Campo de resposta
                 CustomTextField(
                   label: 'Sua Resposta',
-                  controller: _answerController,
+                  controller: _answerPetController,
                   validator: (value) => Validators.validateRequired(value, 'Resposta'),
                   hint: 'Digite sua resposta',
                   prefixIcon: const Icon(Icons.edit),
                   required: true,
                 ),
                 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 
                 // Botão para confirmar
                 SizedBox(
@@ -286,8 +292,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       
       final success = await authService.forgotPassword(
         _emailController.text.trim(),
-        _securityQuestion!,
-        _answerController.text.trim(),
+        _answerPetController.text.trim(),
+        _answerCarController.text.trim(),
+        _answerFriendController.text.trim(),
+        _newPasswordController.text.trim(),
       );
 
       if (success && mounted) {
@@ -324,7 +332,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     setState(() {
       _questionLoaded = false;
       _securityQuestion = null;
-      _answerController.clear();
+      _answerPetController.clear();
+      _answerCarController.clear();
+      _answerFriendController.clear();
+      _newPasswordController.clear();
     });
   }
 }

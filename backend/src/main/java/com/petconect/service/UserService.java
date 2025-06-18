@@ -112,8 +112,9 @@ public class UserService implements UserDetailsService {
         user.setResponsibleName(userDetails.getResponsibleName());
         user.setStoreType(userDetails.getStoreType());
         user.setOperatingHours(userDetails.getOperatingHours());
-        user.setSecurityQuestion(userDetails.getSecurityQuestion());
-        user.setSecurityAnswer(userDetails.getSecurityAnswer());
+        user.setSecurityAnswerPet(userDetails.getSecurityAnswerPet());
+        user.setSecurityAnswerCar(userDetails.getSecurityAnswerCar());
+        user.setSecurityAnswerFriend(userDetails.getSecurityAnswerFriend());
 
         // Se a senha foi fornecida, criptografar
         if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
@@ -140,5 +141,9 @@ public class UserService implements UserDetailsService {
     public boolean validatePassword(String email, String password) {
         Optional<User> user = userRepository.findByEmailAndIsActiveTrue(email);
         return user.isPresent() && passwordEncoder.matches(password, user.get().getPassword());
+    }
+
+    public PasswordEncoder getPasswordEncoder() {
+        return passwordEncoder;
     }
 } 

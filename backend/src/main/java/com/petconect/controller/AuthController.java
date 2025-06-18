@@ -49,20 +49,40 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/security-questions")
+    public ResponseEntity<?> getSecurityQuestions(@RequestParam String email) {
+        // Chama método público de AuthService para verificar existência
+        boolean exists = authService.userExistsByEmail(email);
+        if (!exists) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Usuário não encontrado"
+            ));
+        }
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "questions", new String[]{
+                "Nome do primeiro pet",
+                "Nome do primeiro carro",
+                "Nome do melhor amigo"
+            }
+        ));
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        String securityAnswer = request.get("securityAnswer");
-
-        if (email == null || securityAnswer == null) {
+        String answerPet = request.get("answerPet");
+        String answerCar = request.get("answerCar");
+        String answerFriend = request.get("answerFriend");
+        String newPassword = request.get("newPassword");
+        if (email == null || answerPet == null || answerCar == null || answerFriend == null || newPassword == null) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", "Email e resposta de segurança são obrigatórios"
+                "message", "Email, as 3 respostas de segurança e nova senha são obrigatórios"
             ));
         }
-
-        Map<String, Object> result = authService.forgotPassword(email, securityAnswer);
-        
+        Map<String, Object> result = authService.forgotPassword(email, answerPet, answerCar, answerFriend, newPassword);
         if ((Boolean) result.get("success")) {
             return ResponseEntity.ok(result);
         } else {
@@ -89,5 +109,20 @@ public class AuthController {
         } else {
             return ResponseEntity.badRequest().body(result);
         }
+    }
+
+    @GetMapping("/forgot-password/question")
+    public ResponseEntity<?> getForgotPasswordQuestion(@RequestParam String email) {
+        String question = authService.getSecurityQuestionByEmail(email);
+        if (question == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Usuário não encontrado"
+            ));
+        }
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "question", question
+        ));
     }
 } 

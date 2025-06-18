@@ -37,6 +37,11 @@ class _RegisterPageState extends State<RegisterPage> {
   final _responsibleNameController = TextEditingController();
   final _operatingHoursController = TextEditingController();
   final _crmvController = TextEditingController();
+  final TextEditingController _securityQuestionController = TextEditingController();
+  final TextEditingController _securityAnswerController = TextEditingController();
+  final TextEditingController _securityAnswerPetController = TextEditingController();
+  final TextEditingController _securityAnswerCarController = TextEditingController();
+  final TextEditingController _securityAnswerFriendController = TextEditingController();
 
   final List<Map<String, String>> _steps = [
     {
@@ -70,6 +75,11 @@ class _RegisterPageState extends State<RegisterPage> {
     _responsibleNameController.dispose();
     _operatingHoursController.dispose();
     _crmvController.dispose();
+    _securityQuestionController.dispose();
+    _securityAnswerController.dispose();
+    _securityAnswerPetController.dispose();
+    _securityAnswerCarController.dispose();
+    _securityAnswerFriendController.dispose();
     super.dispose();
   }
 
@@ -373,6 +383,53 @@ class _RegisterPageState extends State<RegisterPage> {
             return null;
           },
         ),
+        
+        // Perguntas de segurança
+        TextFormField(
+          controller: _securityAnswerPetController,
+          decoration: const InputDecoration(
+            labelText: 'Nome do primeiro pet *',
+            prefixIcon: Icon(Icons.pets),
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Obrigatório';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _securityAnswerCarController,
+          decoration: const InputDecoration(
+            labelText: 'Nome do primeiro carro *',
+            prefixIcon: Icon(Icons.directions_car),
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Obrigatório';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _securityAnswerFriendController,
+          decoration: const InputDecoration(
+            labelText: 'Nome do melhor amigo *',
+            prefixIcon: Icon(Icons.person),
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Obrigatório';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -718,6 +775,9 @@ class _RegisterPageState extends State<RegisterPage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final userType = _selectedUserType;
+    final securityAnswerPet = _securityAnswerPetController.text.trim();
+    final securityAnswerCar = _securityAnswerCarController.text.trim();
+    final securityAnswerFriend = _securityAnswerFriendController.text.trim();
 
     final apiService = ApiService();
     final result = await apiService.registerUser(
@@ -725,6 +785,9 @@ class _RegisterPageState extends State<RegisterPage> {
       email: email,
       password: password,
       userType: userType,
+      securityAnswerPet: securityAnswerPet,
+      securityAnswerCar: securityAnswerCar,
+      securityAnswerFriend: securityAnswerFriend,
     );
 
     setState(() {

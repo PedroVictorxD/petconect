@@ -75,25 +75,25 @@ public class AuthService {
         return response;
     }
 
-    public Map<String, Object> forgotPassword(String email, String securityAnswer) {
+    public Map<String, Object> forgotPassword(String email, String answerPet, String answerCar, String answerFriend, String newPassword) {
         Map<String, Object> response = new HashMap<>();
-
         try {
             User user = userService.getUserByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-            if (!user.getSecurityAnswer().equals(securityAnswer)) {
-                throw new RuntimeException("Resposta de segurança incorreta");
+            if (!user.getSecurityAnswerPet().equalsIgnoreCase(answerPet)
+                || !user.getSecurityAnswerCar().equalsIgnoreCase(answerCar)
+                || !user.getSecurityAnswerFriend().equalsIgnoreCase(answerFriend)) {
+                throw new RuntimeException("Respostas de segurança incorretas");
             }
-
+            // Redefinir a senha
+            user.setPassword(userService.getPasswordEncoder().encode(newPassword));
+            userService.updateUser(user.getId(), user);
             response.put("success", true);
-            response.put("message", "Resposta de segurança correta");
-
+            response.put("message", "Senha redefinida com sucesso");
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", e.getMessage());
         }
-
         return response;
     }
 
@@ -116,5 +116,15 @@ public class AuthService {
         }
 
         return response;
+    }
+
+    public boolean userExistsByEmail(String email) {
+        return userService.getUserByEmail(email).isPresent();
+    }
+
+    public String getSecurityQuestionByEmail(String email) {
+        return userService.getUserByEmail(email)
+                .map(user -> "Qual o nome do seu primeiro animal de estimação?")
+                .orElse(null);
     }
 } 

@@ -224,31 +224,19 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  Future<bool> forgotPassword(String email, String question, String answer) async {
+  Future<bool> forgotPassword(String email, String answerPet, String answerCar, String answerFriend, String newPassword) async {
     try {
       _setLoading(true);
-
-      // Verificar usuários de teste
-      final testUser = _testUsers[email.toLowerCase()];
-      if (testUser != null) {
-        final userData = testUser['userData'] as Map<String, dynamic>;
-        if (userData['securityQuestion'] == question && 
-            userData['securityAnswer']?.toLowerCase() == answer.toLowerCase()) {
-          return true;
-        }
-        return false;
-      }
-
-      // Tentar API
       final response = await _apiService.post(
         Constants.forgotPasswordEndpoint,
         {
           'email': email,
-          'securityQuestion': question,
-          'securityAnswer': answer,
+          'answerPet': answerPet,
+          'answerCar': answerCar,
+          'answerFriend': answerFriend,
+          'newPassword': newPassword,
         },
       );
-
       return response['success'] == true;
     } catch (e) {
       debugPrint('Erro na recuperação de senha: $e');

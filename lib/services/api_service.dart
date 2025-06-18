@@ -404,12 +404,18 @@ class ApiService {
     required String email,
     required String password,
     required String userType,
+    required String securityAnswerPet,
+    required String securityAnswerCar,
+    required String securityAnswerFriend,
   }) async {
     final data = {
       'name': name,
       'email': email,
       'password': password,
       'userType': userType,
+      'securityAnswerPet': securityAnswerPet,
+      'securityAnswerCar': securityAnswerCar,
+      'securityAnswerFriend': securityAnswerFriend,
     };
     return await post(Constants.registerEndpoint, data);
   }

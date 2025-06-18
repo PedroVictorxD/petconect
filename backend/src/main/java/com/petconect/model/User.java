@@ -63,11 +63,14 @@ public class User implements UserDetails {
     @Column(name = "operating_hours")
     private String operatingHours;
 
-    @Column(name = "security_question")
-    private String securityQuestion;
+    @Column(name = "security_answer_pet")
+    private String securityAnswerPet;
 
-    @Column(name = "security_answer")
-    private String securityAnswer;
+    @Column(name = "security_answer_car")
+    private String securityAnswerCar;
+
+    @Column(name = "security_answer_friend")
+    private String securityAnswerFriend;
 
     @Column(name = "is_active")
     private Boolean isActive = true;
@@ -193,20 +196,28 @@ public class User implements UserDetails {
         this.operatingHours = operatingHours;
     }
 
-    public String getSecurityQuestion() {
-        return securityQuestion;
+    public String getSecurityAnswerPet() {
+        return securityAnswerPet;
     }
 
-    public void setSecurityQuestion(String securityQuestion) {
-        this.securityQuestion = securityQuestion;
+    public void setSecurityAnswerPet(String securityAnswerPet) {
+        this.securityAnswerPet = securityAnswerPet;
     }
 
-    public String getSecurityAnswer() {
-        return securityAnswer;
+    public String getSecurityAnswerCar() {
+        return securityAnswerCar;
     }
 
-    public void setSecurityAnswer(String securityAnswer) {
-        this.securityAnswer = securityAnswer;
+    public void setSecurityAnswerCar(String securityAnswerCar) {
+        this.securityAnswerCar = securityAnswerCar;
+    }
+
+    public String getSecurityAnswerFriend() {
+        return securityAnswerFriend;
+    }
+
+    public void setSecurityAnswerFriend(String securityAnswerFriend) {
+        this.securityAnswerFriend = securityAnswerFriend;
     }
 
     public Boolean getIsActive() {
