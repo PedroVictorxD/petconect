@@ -231,8 +231,10 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildAnimatedHeroSection(BuildContext context, bool isDesktop) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      height: MediaQuery.of(context).size.height,
+      height: isMobile ? MediaQuery.of(context).size.height * 0.9 : MediaQuery.of(context).size.height,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -250,7 +252,7 @@ class _LandingPageState extends State<LandingPage>
           Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 1200),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 20),
               child: FadeTransition(
                 opacity: _heroFadeAnimation,
                 child: SlideTransition(
@@ -262,7 +264,7 @@ class _LandingPageState extends State<LandingPage>
                               flex: 6,
                               child: _buildHeroContent(context),
                             ),
-                            const SizedBox(width: 80),
+                            SizedBox(width: isMobile ? 40 : 80),
                             Expanded(
                               flex: 5,
                               child: ScaleTransition(
@@ -276,7 +278,7 @@ class _LandingPageState extends State<LandingPage>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _buildHeroContent(context),
-                            const SizedBox(height: 60),
+                            SizedBox(height: isMobile ? 30 : 60),
                             ScaleTransition(
                               scale: _heroScaleAnimation,
                               child: _buildAnimatedHeroImage(),
@@ -318,12 +320,17 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildHeroContent(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 16, 
+            vertical: isMobile ? 6 : 8
+          ),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
@@ -334,11 +341,11 @@ class _LandingPageState extends State<LandingPage>
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: isMobile ? 12 : 14,
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: isMobile ? 16 : 24),
         ShaderMask(
           shaderCallback: (bounds) => LinearGradient(
             colors: [Colors.white, Colors.white.withOpacity(0.8)],
@@ -348,40 +355,74 @@ class _LandingPageState extends State<LandingPage>
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 56,
+              fontSize: isMobile ? 32 : 56,
               height: 1.1,
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: isMobile ? 16 : 24),
         Text(
           'A plataforma mais completa que conecta tutores, veterinários e lojistas em um ecossistema único. Gerencie seus pets, encontre produtos de qualidade e acesse serviços especializados.',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: Colors.white.withOpacity(0.9),
             height: 1.6,
             fontWeight: FontWeight.w400,
+            fontSize: isMobile ? 16 : null,
           ),
         ),
-        const SizedBox(height: 40),
-        Row(
-          children: [
-            _buildAnimatedButton(
-              text: 'Começar Agora',
-              isPrimary: true,
-              onPressed: () => context.go(Routes.register),
-              icon: Icons.rocket_launch,
-            ),
-            const SizedBox(width: 16),
-            _buildAnimatedButton(
-              text: 'Ver Demo',
-              isPrimary: false,
-              onPressed: () => context.go(Routes.login),
-              icon: Icons.play_circle_outline,
-            ),
-          ],
-        ),
-        const SizedBox(height: 40),
-        _buildTrustIndicators(),
+        SizedBox(height: isMobile ? 24 : 40),
+        isMobile
+            ? Column(
+                children: [
+                  _buildAnimatedButton(
+                    text: 'Começar Agora',
+                    isPrimary: true,
+                    onPressed: () => context.go(Routes.register),
+                    icon: Icons.rocket_launch,
+                  ),
+                  SizedBox(height: 12),
+                  _buildAnimatedButton(
+                    text: 'Ver Demo',
+                    isPrimary: false,
+                    onPressed: () => context.go(Routes.login),
+                    icon: Icons.play_circle_outline,
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  _buildAnimatedButton(
+                    text: 'Começar Agora',
+                    isPrimary: true,
+                    onPressed: () => context.go(Routes.register),
+                    icon: Icons.rocket_launch,
+                  ),
+                  const SizedBox(width: 16),
+                  _buildAnimatedButton(
+                    text: 'Ver Demo',
+                    isPrimary: false,
+                    onPressed: () => context.go(Routes.login),
+                    icon: Icons.play_circle_outline,
+                  ),
+                ],
+              ),
+        SizedBox(height: isMobile ? 24 : 40),
+        isMobile
+            ? Column(
+                children: [
+                  _buildTrustItem('10k+', 'Usuários ativos'),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildTrustItem('500+', 'Lojistas parceiros'),
+                      SizedBox(width: 32),
+                      _buildTrustItem('50+', 'Veterinários'),
+                    ],
+                  ),
+                ],
+              )
+            : _buildTrustIndicators(),
       ],
     );
   }
@@ -392,6 +433,8 @@ class _LandingPageState extends State<LandingPage>
     required VoidCallback onPressed,
     required IconData icon,
   }) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -410,7 +453,10 @@ class _LandingPageState extends State<LandingPage>
           onTap: onPressed,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 16 : 24, 
+              vertical: isMobile ? 12 : 16
+            ),
             decoration: BoxDecoration(
               color: isPrimary
                   ? Colors.white
@@ -427,15 +473,15 @@ class _LandingPageState extends State<LandingPage>
                 Icon(
                   icon,
                   color: isPrimary ? AppTheme.primaryColor : Colors.white,
-                  size: 20,
+                  size: isMobile ? 16 : 20,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: isMobile ? 6 : 8),
                 Text(
                   text,
                   style: TextStyle(
                     color: isPrimary ? AppTheme.primaryColor : Colors.white,
                     fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                    fontSize: isMobile ? 14 : 16,
                   ),
                 ),
               ],
@@ -459,6 +505,8 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildTrustItem(String number, String label) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -466,7 +514,7 @@ class _LandingPageState extends State<LandingPage>
           number,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 24,
+            fontSize: isMobile ? 18 : 24,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -474,7 +522,7 @@ class _LandingPageState extends State<LandingPage>
           label,
           style: TextStyle(
             color: Colors.white.withOpacity(0.8),
-            fontSize: 12,
+            fontSize: isMobile ? 10 : 12,
           ),
         ),
       ],
@@ -482,13 +530,15 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildAnimatedHeroImage() {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return AnimatedBuilder(
       animation: _floatingAnimation,
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, _floatingAnimation.value * 0.5),
           child: Container(
-            height: 400,
+            height: isMobile ? 250 : 400,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: LinearGradient(
@@ -513,10 +563,10 @@ class _LandingPageState extends State<LandingPage>
               borderRadius: BorderRadius.circular(24),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.pets,
-                    size: 120,
+                    size: isMobile ? 80 : 120,
                     color: Colors.white,
                   ),
                 ),
@@ -529,8 +579,13 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildFloatingFeaturesSection(BuildContext context, bool isDesktop) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 120, horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 60 : 120, 
+        horizontal: isMobile ? 16 : 20
+      ),
       child: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -541,8 +596,10 @@ class _LandingPageState extends State<LandingPage>
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 16, 
+                        vertical: isMobile ? 6 : 8
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
@@ -552,31 +609,33 @@ class _LandingPageState extends State<LandingPage>
                         style: TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: isMobile ? 10 : 12,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isMobile ? 12 : 16),
                     Text(
                       'Tudo que você precisa\npara cuidar melhor do seu pet',
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         height: 1.2,
+                        fontSize: isMobile ? 20 : null,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isMobile ? 12 : 16),
                     Text(
                       'Ferramentas modernas e intuitivas para uma experiência completa',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.grey[600],
+                        fontSize: isMobile ? 14 : null,
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 80),
+              SizedBox(height: isMobile ? 40 : 80),
               SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 0.3),
@@ -618,14 +677,14 @@ class _LandingPageState extends State<LandingPage>
                               'Calculadora Inteligente',
                               'IA que calcula a quantidade ideal de ração baseada no peso, idade e atividade do seu pet',
                               0),
-                          const SizedBox(height: 30),
+                          SizedBox(height: isMobile ? 20 : 30),
                           _buildFeatureCard(
                               context,
                               Icons.store,
                               'Marketplace Premium',
                               'Encontre produtos e serviços verificados na sua região com entrega rápida',
                               1),
-                          const SizedBox(height: 30),
+                          SizedBox(height: isMobile ? 20 : 30),
                           _buildFeatureCard(
                               context,
                               Icons.medical_services,
@@ -644,6 +703,8 @@ class _LandingPageState extends State<LandingPage>
 
   Widget _buildFeatureCard(BuildContext context, IconData icon, String title,
       String description, int index) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return AnimatedBuilder(
       animation: _floatingAnimation,
       builder: (context, child) {
@@ -679,11 +740,11 @@ class _LandingPageState extends State<LandingPage>
                 borderRadius: BorderRadius.circular(24),
                 onTap: () {},
                 child: Padding(
-                  padding: const EdgeInsets.all(40),
+                  padding: EdgeInsets.all(isMobile ? 24 : 40),
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(isMobile ? 16 : 20),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -695,24 +756,26 @@ class _LandingPageState extends State<LandingPage>
                         ),
                         child: Icon(
                           icon,
-                          size: 40,
+                          size: isMobile ? 32 : 40,
                           color: AppTheme.primaryColor,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: isMobile ? 16 : 24),
                       Text(
                         title,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
+                          fontSize: isMobile ? 18 : null,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: isMobile ? 12 : 16),
                       Text(
                         description,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey[600],
                           height: 1.6,
+                          fontSize: isMobile ? 14 : null,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -728,8 +791,13 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildStatisticsSection(BuildContext context, bool isDesktop) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 40 : 80, 
+        horizontal: isMobile ? 16 : 20
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -756,15 +824,15 @@ class _LandingPageState extends State<LandingPage>
                     Row(
                       children: [
                         Expanded(child: _buildStatItem('50k+', 'Pets Cadastrados', Icons.pets)),
-                        const SizedBox(width: 20),
+                        SizedBox(width: isMobile ? 12 : 20),
                         Expanded(child: _buildStatItem('15k+', 'Consultas Realizadas', Icons.medical_services)),
                       ],
                     ),
-                    const SizedBox(height: 30),
+                    SizedBox(height: isMobile ? 16 : 30),
                     Row(
                       children: [
                         Expanded(child: _buildStatItem('200+', 'Cidades Atendidas', Icons.location_city)),
-                        const SizedBox(width: 20),
+                        SizedBox(width: isMobile ? 12 : 20),
                         Expanded(child: _buildStatItem('98%', 'Satisfação', Icons.star)),
                       ],
                     ),
@@ -776,8 +844,10 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildStatItem(String number, String label, IconData icon) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isMobile ? 20 : 32),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -794,23 +864,24 @@ class _LandingPageState extends State<LandingPage>
           Icon(
             icon,
             color: AppTheme.primaryColor,
-            size: 32,
+            size: isMobile ? 24 : 32,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 12 : 16),
           Text(
             number,
             style: TextStyle(
-              fontSize: 32,
+              fontSize: isMobile ? 24 : 32,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryColor,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobile ? 6 : 8),
           Text(
             label,
             style: TextStyle(
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
+              fontSize: isMobile ? 12 : null,
             ),
             textAlign: TextAlign.center,
           ),
@@ -820,8 +891,14 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildInteractiveUserTypesSection(BuildContext context, bool isDesktop) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    final isTablet = ResponsiveBreakpoints.of(context).isTablet;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 120, horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 60 : 120, 
+        horizontal: isMobile ? 16 : 20
+      ),
       color: Colors.grey[50],
       child: Center(
         child: Container(
@@ -832,25 +909,27 @@ class _LandingPageState extends State<LandingPage>
                 'Para Todos os Perfis',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: isMobile ? 24 : null,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 12 : 16),
               Text(
                 'Soluções personalizadas para cada tipo de usuário',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.grey[600],
+                  fontSize: isMobile ? 14 : null,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 80),
+              SizedBox(height: isMobile ? 40 : 80),
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: isDesktop ? 4 : 2,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: isDesktop ? 1.1 : 1,
+                crossAxisCount: isDesktop ? 4 : (isTablet ? 2 : 1),
+                crossAxisSpacing: isMobile ? 16 : 20,
+                mainAxisSpacing: isMobile ? 16 : 20,
+                childAspectRatio: isDesktop ? 1.1 : (isTablet ? 1.2 : 1.5),
                 children: [
                   _buildInteractiveUserTypeCard(
                       context,
@@ -905,12 +984,13 @@ class _LandingPageState extends State<LandingPage>
           borderRadius: BorderRadius.circular(20),
           onTap: () {},
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(ResponsiveBreakpoints.of(context).isMobile ? 16 : 24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(ResponsiveBreakpoints.of(context).isMobile ? 12 : 16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -922,26 +1002,32 @@ class _LandingPageState extends State<LandingPage>
                   ),
                   child: Icon(
                     icon,
-                    size: 32,
+                    size: ResponsiveBreakpoints.of(context).isMobile ? 24 : 32,
                     color: color,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveBreakpoints.of(context).isMobile ? 12 : 20),
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
+                    fontSize: ResponsiveBreakpoints.of(context).isMobile ? 16 : null,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                    height: 1.4,
+                SizedBox(height: ResponsiveBreakpoints.of(context).isMobile ? 8 : 12),
+                Expanded(
+                  child: Text(
+                    description,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                      height: 1.4,
+                      fontSize: ResponsiveBreakpoints.of(context).isMobile ? 12 : null,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -952,8 +1038,13 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildTestimonialsSection(BuildContext context, bool isDesktop) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 120, horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 60 : 120, 
+        horizontal: isMobile ? 16 : 20
+      ),
       child: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -963,18 +1054,20 @@ class _LandingPageState extends State<LandingPage>
                 'O que nossos usuários dizem',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: isMobile ? 20 : null,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 12 : 16),
               Text(
                 'Milhares de pessoas já confiam no Pet System',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.grey[600],
+                  fontSize: isMobile ? 14 : null,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 80),
+              SizedBox(height: isMobile ? 40 : 80),
               isDesktop
                   ? Row(
                       children: [
@@ -1008,14 +1101,14 @@ class _LandingPageState extends State<LandingPage>
                           'O Pet System revolucionou como cuido dos meus pets. A calculadora de ração é incrível!',
                           '⭐⭐⭐⭐⭐',
                         ),
-                        const SizedBox(height: 30),
+                        SizedBox(height: isMobile ? 20 : 30),
                         _buildTestimonialCard(
                           'Dr. Carlos Mendes',
                           'Veterinário',
                           'Plataforma profissional que me conecta com mais clientes. Interface excelente!',
                           '⭐⭐⭐⭐⭐',
                         ),
-                        const SizedBox(height: 30),
+                        SizedBox(height: isMobile ? 20 : 30),
                         _buildTestimonialCard(
                           'Maria Lopes',
                           'Proprietária Pet Shop',
@@ -1032,8 +1125,10 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildTestimonialCard(String name, String role, String testimonial, String rating) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(isMobile ? 20 : 32),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1049,22 +1144,23 @@ class _LandingPageState extends State<LandingPage>
         children: [
           Text(
             rating,
-            style: const TextStyle(fontSize: 24),
+            style: TextStyle(fontSize: isMobile ? 20 : 24),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 16 : 20),
           Text(
             '"$testimonial"',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontStyle: FontStyle.italic,
               height: 1.6,
               color: Colors.grey[700],
+              fontSize: isMobile ? 14 : null,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           Container(
-            width: 60,
-            height: 60,
+            width: isMobile ? 50 : 60,
+            height: isMobile ? 50 : 60,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -1077,21 +1173,23 @@ class _LandingPageState extends State<LandingPage>
             child: Icon(
               Icons.person,
               color: AppTheme.primaryColor,
-              size: 30,
+              size: isMobile ? 25 : 30,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 12 : 16),
           Text(
             name,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              fontSize: isMobile ? 16 : null,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: isMobile ? 2 : 4),
           Text(
             role,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.grey[600],
+              fontSize: isMobile ? 12 : null,
             ),
           ),
         ],
@@ -1100,8 +1198,13 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildDynamicCTASection(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 120, horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 60 : 120, 
+        horizontal: isMobile ? 16 : 20
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -1119,7 +1222,10 @@ class _LandingPageState extends State<LandingPage>
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 12 : 16, 
+                  vertical: isMobile ? 6 : 8
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -1130,11 +1236,11 @@ class _LandingPageState extends State<LandingPage>
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: isMobile ? 10 : 12,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: isMobile ? 16 : 24),
               ShaderMask(
                 shaderCallback: (bounds) => LinearGradient(
                   colors: [Colors.white, Colors.white.withOpacity(0.8)],
@@ -1145,20 +1251,22 @@ class _LandingPageState extends State<LandingPage>
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
+                    fontSize: isMobile ? 24 : null,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: isMobile ? 16 : 24),
               Text(
                 'Junte-se a mais de 50.000 usuários que já transformaram a experiência de cuidar dos seus pets. Comece gratuitamente hoje!',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: Colors.white.withOpacity(0.9),
                   height: 1.6,
+                  fontSize: isMobile ? 16 : null,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              SizedBox(height: isMobile ? 32 : 48),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
@@ -1176,7 +1284,10 @@ class _LandingPageState extends State<LandingPage>
                     onTap: () => context.go(Routes.register),
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 24 : 40, 
+                        vertical: isMobile ? 16 : 20
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -1187,14 +1298,14 @@ class _LandingPageState extends State<LandingPage>
                           Icon(
                             Icons.rocket_launch,
                             color: AppTheme.primaryColor,
-                            size: 24,
+                            size: isMobile ? 20 : 24,
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: isMobile ? 8 : 12),
                           Text(
                             'Criar Conta Gratuita',
                             style: TextStyle(
                               color: AppTheme.primaryColor,
-                              fontSize: 18,
+                              fontSize: isMobile ? 16 : 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1204,12 +1315,12 @@ class _LandingPageState extends State<LandingPage>
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: isMobile ? 16 : 24),
               Text(
                 '✓ Grátis para sempre  ✓ Sem cartão de crédito  ✓ Configuração em 2 minutos',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
-                  fontSize: 14,
+                  fontSize: isMobile ? 12 : 14,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -1221,8 +1332,13 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildModernFooter(BuildContext context) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 40 : 80, 
+        horizontal: isMobile ? 16 : 20
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -1242,7 +1358,7 @@ class _LandingPageState extends State<LandingPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(isMobile ? 8 : 12),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
@@ -1250,75 +1366,116 @@ class _LandingPageState extends State<LandingPage>
                     child: Icon(
                       Icons.pets,
                       color: AppTheme.primaryColor,
-                      size: 32,
+                      size: isMobile ? 24 : 32,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 12 : 16),
                   Text(
                     'Pet System',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: isMobile ? 20 : null,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: isMobile ? 16 : 24),
               Text(
                 'A plataforma mais completa para o universo pet',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.grey[400],
+                  fontSize: isMobile ? 14 : null,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              SizedBox(height: isMobile ? 32 : 48),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildSocialButton(Icons.facebook, () {}),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 12 : 16),
                   _buildSocialButton(Icons.camera_alt, () {}),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 12 : 16),
                   _buildSocialButton(Icons.telegram, () {}),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 12 : 16),
                   _buildSocialButton(Icons.email, () {}),
                 ],
               ),
-              const SizedBox(height: 48),
+              SizedBox(height: isMobile ? 32 : 48),
               Container(
                 height: 1,
                 color: Colors.grey[800],
               ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '© 2024 Pet System. Todos os direitos reservados.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[500],
+              SizedBox(height: isMobile ? 20 : 32),
+              isMobile
+                  ? Column(
+                      children: [
+                        Text(
+                          '© 2024 Pet System. Todos os direitos reservados.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                'Privacidade',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                'Termos',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '© 2024 Pet System. Todos os direitos reservados.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                'Privacidade',
+                                style: TextStyle(color: Colors.grey[500]),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                'Termos',
+                                style: TextStyle(color: Colors.grey[500]),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Privacidade',
-                          style: TextStyle(color: Colors.grey[500]),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Termos',
-                          style: TextStyle(color: Colors.grey[500]),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -1327,6 +1484,8 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildSocialButton(IconData icon, VoidCallback onPressed) {
+    final isMobile = ResponsiveBreakpoints.of(context).isMobile;
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[800],
@@ -1336,13 +1495,13 @@ class _LandingPageState extends State<LandingPage>
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(isMobile ? 20 : 25),
           child: Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(isMobile ? 10 : 12),
             child: Icon(
               icon,
               color: Colors.grey[400],
-              size: 20,
+              size: isMobile ? 16 : 20,
             ),
           ),
         ),

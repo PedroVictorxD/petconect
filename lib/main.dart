@@ -6,6 +6,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/routes.dart';
+import 'utils/constants.dart';
 import 'screens/landing/landing_page.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/auth/register_page.dart';
@@ -89,11 +90,45 @@ class MyApp extends StatelessWidget {
     redirect: (context, state) {
       final authService = Provider.of<AuthService>(context, listen: false);
       final isLoggedIn = authService.isLoggedIn;
+      final currentUser = authService.currentUser;
       
+      // Se não estiver logado e tentar acessar páginas protegidas
       if (!isLoggedIn && state.fullPath != Routes.landing && 
           state.fullPath != Routes.login && state.fullPath != Routes.register &&
           state.fullPath != Routes.forgotPassword && state.fullPath != Routes.resetPassword) {
         return Routes.landing;
+      }
+      
+      // Se estiver logado e estiver na landing page, redirecionar para a página correta
+      if (isLoggedIn && currentUser != null && state.fullPath == Routes.landing) {
+        switch (currentUser.userType) {
+          case Constants.adminType:
+            return Routes.admin;
+          case Constants.lojistaType:
+            return Routes.lojista;
+          case Constants.veterinarioType:
+            return Routes.veterinario;
+          case Constants.tutorType:
+          default:
+            return Routes.tutor;
+        }
+      }
+      
+      // Se estiver logado e tentar acessar páginas de auth, redirecionar para a página correta
+      if (isLoggedIn && currentUser != null && 
+          (state.fullPath == Routes.login || state.fullPath == Routes.register ||
+           state.fullPath == Routes.forgotPassword || state.fullPath == Routes.resetPassword)) {
+        switch (currentUser.userType) {
+          case Constants.adminType:
+            return Routes.admin;
+          case Constants.lojistaType:
+            return Routes.lojista;
+          case Constants.veterinarioType:
+            return Routes.veterinario;
+          case Constants.tutorType:
+          default:
+            return Routes.tutor;
+        }
       }
       
       return null;

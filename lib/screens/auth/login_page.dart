@@ -13,6 +13,7 @@ import '../../widgets/loading_widget.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/routes.dart';
 import '../../utils/validators.dart';
+import '../../utils/constants.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -732,54 +733,61 @@ class _LoginPageState extends State<LoginPage>
     });
 
     try {
-      // Simular delay da API
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Validação simples para demo
+      final authService = Provider.of<AuthService>(context, listen: false);
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      if (email.isNotEmpty && password.length >= 6) {
+      final success = await authService.login(email, password);
+
+      if (success && mounted) {
         // Sucesso - animação de saída
         await _heroController.reverse();
         
-        if (mounted) {
-          // Redirecionar baseado no tipo de usuário
-          String route = Routes.landing;
-          if (email.contains('admin')) {
-            route = '/admin/dashboard';
-          } else if (email.contains('lojista')) {
-            route = '/lojista/dashboard';
-          } else if (email.contains('vet')) {
-            route = '/veterinario/dashboard';
-          } else {
-            route = '/tutor/dashboard';
+        // Redirecionar baseado no tipo de usuário
+        final user = authService.currentUser;
+        String route = Routes.landing;
+        
+        if (user != null) {
+          switch (user.userType) {
+            case Constants.adminType:
+              route = Routes.admin;
+              break;
+            case Constants.lojistaType:
+              route = Routes.lojista;
+              break;
+            case Constants.veterinarioType:
+              route = Routes.veterinario;
+              break;
+            case Constants.tutorType:
+            default:
+              route = Routes.tutor;
+              break;
           }
-          
-          context.go(route);
-          
-          // Mostrar mensagem de sucesso
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Login realizado com sucesso! 🎉',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-              backgroundColor: Colors.green[600],
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              duration: const Duration(seconds: 3),
-            ),
-          );
         }
+        
+        context.go(route);
+        
+        // Mostrar mensagem de sucesso
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                const Text(
+                  'Login realizado com sucesso! 🎉',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       } else {
         setState(() {
           _errorMessage = 'Email ou senha incorretos. Verifique suas credenciais e tente novamente.';
