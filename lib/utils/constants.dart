@@ -1,6 +1,6 @@
 class Constants {
   // API Base URL - ajuste conforme seu backend Spring Boot
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = 'http://localhost:8081/api';
   
   // Endpoints
   static const String loginEndpoint = '/auth/login';

@@ -30,7 +30,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmPasswordController = TextEditingController();
   final _locationController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _cpfController = TextEditingController();
   final _cnpjController = TextEditingController();
   final _responsibleNameController = TextEditingController();
   final _operatingHoursController = TextEditingController();
@@ -63,7 +62,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _confirmPasswordController.dispose();
     _locationController.dispose();
     _phoneController.dispose();
-    _cpfController.dispose();
     _cnpjController.dispose();
     _responsibleNameController.dispose();
     _operatingHoursController.dispose();
@@ -274,28 +272,6 @@ class _RegisterPageState extends State<RegisterPage> {
             }
             if (!value.contains('@')) {
               return 'Digite um email válido';
-            }
-            return null;
-          },
-        ),
-        
-        const SizedBox(height: 16),
-        
-        TextFormField(
-          controller: _cpfController,
-          decoration: const InputDecoration(
-            labelText: 'CPF *',
-            hintText: 'XXX.XXX.XXX-XX',
-            prefixIcon: Icon(Icons.badge),
-            border: OutlineInputBorder(),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'CPF é obrigatório';
-            }
-            // Validação básica de CPF (formato)
-            if (!RegExp(r'^\d{3}\.\d{3}\.\d{3}-\d{2}$').hasMatch(value)) {
-              return 'Digite um CPF válido (XXX.XXX.XXX-XX)';
             }
             return null;
           },
@@ -591,7 +567,6 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 16),
               _buildConfirmationItem('Nome', _nameController.text),
               _buildConfirmationItem('Email', _emailController.text),
-              _buildConfirmationItem('CPF', _cpfController.text),
               _buildConfirmationItem('Tipo', _getUserTypeLabel()),
               _buildConfirmationItem('Localização', _locationController.text),
               _buildConfirmationItem('Telefone', _phoneController.text),
